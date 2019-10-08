@@ -55,7 +55,7 @@ function getSheetNames() {
 
 // Detect whether a given sheet is a stock round or operating round
 function detectRound(name) {
-  var round = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(name).getRange(19, 4).getValue();
+  var round = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(name).getRange(18, 4).getValue();
   if (round == "OR" || round == "SR") {
     return round;
   }
@@ -459,7 +459,7 @@ function createNewRound(formObject) {
   if (results.checkIndex(minorDrawIndices[0], "minor draw pile")) { showResults(results); return; }
   // Extract array of draw order
   var minorDrawRow = minorDrawIndices[0] + 1;
-  var minorDrawCol = minorDrawIndices[1] + 1
+  var minorDrawCol = minorDrawIndices[1] + 1;
   var minorDraws = results.data.map(function(value) { return value[minorDrawCol]; }).splice(minorDrawRow, NUM_MINORS);
   
   // Get row/column for private draw pile box
@@ -467,15 +467,15 @@ function createNewRound(formObject) {
   if (results.checkIndex(privateDrawIndices[0], "private draw pile")) { showResults(results); return; }
   // Extract array of draw order
   var privateDrawRow = privateDrawIndices[0] + 1;
-  var privateDrawCol = privateDrawIndices[1] + 1
+  var privateDrawCol = privateDrawIndices[1] + 1;
   var privateDraws = results.data.map(function(value) { return value[privateDrawCol]; }).splice(privateDrawRow, NUM_PRIVATES);
   
   // Get row/column for major concession draw pile box
-  var concessionDrawIndices = results.data.indexOf2D("Concession draw Pile\nPlace FCM on top");
+  var concessionDrawIndices = results.data.indexOf2D(["Order", "Concession"]);
   if (results.checkIndex(concessionDrawIndices[0], "major concession draw pile")) { showResults(results); return; }
   // Extract array of draw order
-  var concessionDrawRow = concessionDrawIndices[0] + 1;
-  var concessionDrawCol = concessionDrawIndices[1] + 1
+  var concessionDrawRow = concessionDrawIndices[0] + 2;
+  var concessionDrawCol = concessionDrawIndices[1] + 1;
   var concessionDraws = results.data.map(function(value) { return value[concessionDrawCol]; }).splice(concessionDrawRow, NUM_MAJORS);
   
   // Get row/column for end-of-round private ownership
