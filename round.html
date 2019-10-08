@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script>
+      function handleFormSubmit(formObject) {
+        btnLoading();
+        google.script.run.withSuccessHandler(handleValidateForm).validateForm(formObject);
+      }
+      
+      function handleValidateForm(errors) {
+        // Modify CSS depending on validity of entries
+        if (errors.newName) {
+          $('#new-round').removeClass('is-invalid');
+        }
+        else {
+          $('#new-round').addClass('is-invalid');
+          btnNotLoading();
+        }
+        
+        if (errors.currentName) {
+          $('#current-round').removeClass('is-invalid');
+        }
+        else {
+          $('#current-round').addClass('is-invalid');
+          btnNotLoading();
+        }
+        
+        if (errors.newName && errors.currentName) {
+          submitForm();
+        }
+      }
+      
+      function closeDialog() {
+        google.script.host.close();
+      }
+      
+      function submitForm() {
+        var formObject = document.getElementById('roundForm');
+        google.script.run.withSuccessHandler(closeDialog).createNewRound(formObject);
+      }
+      
+
+      // Detect if the given sheet is a stock round or operating round
+      function detect(name) {
+        google.script.run.withSuccessHandler(updateDetect).detectRound(name);
+      }
+      
+      function btnLoading() {
+        $('#submit').prop('disabled', true);
+        $('#submit').html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>&nbsp;&nbsp;Creating...');
+      }
+      
+      function btnNotLoading() {
+        $('#submit').prop('disabled', false);
+        $('#submit').html("Create!");
+      }
+      
+
+      // Update "detected" tag
+      function updateDetect(round) {
+        if (round) {
+          $('#detected').text("Detected: " + round);
+          $('#detected').attr('class', 'mt-2 ml-1 text-muted');
+          $('#current-round').removeClass('is-invalid');
+          
+          if (round == "SR") {
+            // If a stock round was detected, the next round has to be an OR
+            $('#radios-sr').prop('disabled', true);
+            $('#radios-sr').prop('checked', false);
+            $('#radios-or').prop('checked', true);
+          }
+          else {
+            $('#radios-sr').prop('disabled', false);
+          }
+        }
+        else {
+          $('#detected').text("No round detected");
+          $('#detected').attr('class', 'mt-2 ml-1 text-danger');
+          $('#current-round').addClass('is-invalid');
+          btnNotLoading();
+        }
+      }
+    </script>
+ </head>
+<body>
+
+<form id="roundForm" onsubmit="handleFormSubmit(this)">
+  <div class="container">
+    <div class="row">
+      <!-- Text -->
+      <div class="col-sm-6 mr-auto">
+        <label for="text">Name of new round:</label>                    
+        <input class="form-control" id="new-round" name="newName">
+      </div>
+      <div class="col-sm-4 mr-auto">
+        <label for="newType">New round is a(n):</label>
+        <div class="form-check">
+          <input class=form-check-input type="radio" name="newType" id="radios-or" value="OR" checked="checked">
+          <label class=form-check-label for="radios-or">Operating round</label>
+        </div>
+        <div class="form-check">
+          <input class=form-check-input type="radio" name="newType" id="radios-sr" value="SR">
+          <label class=form-check-label for="radios-sr">Stock round</label>
+        </div>
+      </div>
+    </div>
+    
+    <div class="row">
+      <div class="col-sm-6 mt-3 mr-auto">
+        <label class="form-check-label">Current round:</label>
+        <select class="form-control" id="current-round" name="currentName" onchange="detect(this.options[this.selectedIndex].innerHTML)">
+        </select>
+        <h6><small id="detected">&nbsp;</small></h6>
+<script>
+(function() {
+  google.script.run.withSuccessHandler(populateNames).getSheetNames();
+})();
+
+
+// Populate dropdown list with sheet names
+function populateNames(names) {
+  var dropdown = $('#current-round');
+  dropdown.empty();
+  for (var i=0; i<names.length; i++) {
+    dropdown.append("<option value=\"" + names[i] + "\">" + names[i] + '</option>');
+  }
+  
+  // After populating, update the detected round
+  if (names.length > 0) {
+    detect(names[0]);
+  }
+  
+}
+</script>
+      </div>
+    </div>
+    <div class="row mt-3">
+      <div class="col-sm-4 offset-sm-4">
+        <div class="form-group">
+          <button name="button-submit" id="submit" class="btn btn-success btn-block" type="submit">Create!</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+
+  </body>
+</html>

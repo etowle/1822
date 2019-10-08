@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script>
+      function handleFormSubmit() {
+        btnLoading();
+        google.script.run.withSuccessHandler(closeSidebar).confirmNewRound();
+      }
+      
+      function closeSidebar() {
+        google.script.host.close();
+      }
+      
+      function btnLoading() {
+        $('#submit').prop('disabled', true);
+        $('#submit').html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>&nbsp;&nbsp;&nbsp;Confirm');
+        $('#cancel').prop('disabled', true);
+      }
+    </script>
+  </head>
+  <body>
+    <ul id="log" class="list-group"></ul>
+    <script>
+// Populate log
+( function() {
+  google.script.run.withSuccessHandler(populateLog).getResults();
+  })();
+  
+function populateLog(results) {
+  // Summary information
+  var newType = results.newType == "OR" ? "operating round" : "stock round";
+  var curType = results.currentType == "OR" ? "operating round" : "stock round";
+  var summary = "<i>Creating new " + newType + " named " + results.newName + " from " + curType + " " + results.currentName + ".</i>";
+  var sumLi = '<li class="list-group-item py-1">' + summary + '</li>';
+  $('#log').append(sumLi);
+  
+  // Populate list
+  for (i=0; i<results.log.length; i++) {
+    var li = '<li class="list-group-item py-1">' + results.log[i] + '</li>';
+    $('#log').append(li);
+  }
+}
+    </script>
+    <form id="roundForm" onsubmit="handleFormSubmit()">
+      <div class="container">
+        <div class="row justify-content-around my-3">
+          <div class="col-xs-4">
+            <button name="button-submit" id="submit" class="btn btn-success btn-block" type="submit">&nbsp;&nbsp;&nbsp;Confirm&nbsp;&nbsp;&nbsp;</button>
+          </div>
+          <div class="col-xs-4">
+            <button name="button-cancel" id="cancel" class="btn btn-secondary btn-block" type="button" onclick="closeSidebar()">&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;</button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </body>
+</html>
