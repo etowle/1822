@@ -606,9 +606,6 @@ function createNewRound(formObject) {
         results.log(winner + " is director of minor " + minor + ". Won for $" + winningBid + ", valued at $" + startPrice + ", $" + startTreasury + " treasury");
       }
     }
-    if (sold.length > 0) {
-      results.reminder("Update stock market for sold minors: " + sold.join(", "));
-    }
     
     // Determine minors to place in new bid boxes
     var minorOrder = "All minors are sold";
@@ -957,6 +954,7 @@ function createNewRound(formObject) {
         
         // If this is FCM, also add the winner as director of M18
         if (concession == "FCM") {
+          sold.push("M18");
           // Add minor share count to owner's row
           results.change(playerRow[winner], minorCol["M18"], 1);
           
@@ -970,6 +968,9 @@ function createNewRound(formObject) {
           results.log(winner + " is director of M18 as part of winning FCM concession. M18 valued at $50 with $100 in treasury");
         }
       }
+    }
+    if (sold.length > 0) {
+      results.reminder("Update stock market for newly launched minors: " + sold.join(", "));
     }
     
     // Determine concessions to place in new bid boxes
