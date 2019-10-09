@@ -69,7 +69,6 @@ function Results() {
   this.currentType = "";
   this.data = [];
   this.changes = [];
-  this.changeAdds = [];
   this.logged = [];
   this.reminders = [];
   this.errors = [];
@@ -79,7 +78,6 @@ function Results() {
   this.getCurrentName = function() { return this.currentName; }
   this.getCurrentType = function() { return this.currentType; }
   this.getChanges = function() { return this.changes; }
-  this.getChangeAdds = function() { return this.changeAdds; }
   this.getLog = function() { return this.logged; }
   this.printLog = function() { return this.logged.join("\n"); }
   this.printErrors = function() { return this.errors.join("\n"); }
@@ -96,25 +94,17 @@ function Results() {
     }
     
     if (this.data[i][j] != val) {
-      if (!delay) {
-        // For instantaneous changes, immediately change the data
-        this.data[i][j] = val;
-      }
+      this.data[i][j] = val;
+      // If a change has already been pushed for this row/column/delay combination, remove it
+      this.changes = this.changes.filter(function(e) { return (e[0] != i || e[1] != j || e[3] != delay); });
       this.changes.push([i, j, val, delay]);
     }
   }
   
   // Change a data value by adding to the existing value
-  this.changeAdd = function(i, j, val, delay) {
-    // Default value
-    if (delay == null) {
-      delay = false;
-    }
-    // Immediately make changes that should be instantaneous
-    if (!delay) {
-      this.data[i][j] += val;
-    }
-    this.changeAdds.push([i, j, val, false]);
+  // Should only be used with data that immediately affects this round
+  this.changeAdd = function(i, j, val) {
+    this.change(i, j, this.data[i][j] + val, false);
   }
   
   // Check if a value is -1, and if so, log what was being searched
@@ -138,9 +128,8 @@ function getResults() {
   var currentType = JSON.parse(userProperties.getProperty("currentType"));
   var log = JSON.parse(userProperties.getProperty("log"));
   var changes = JSON.parse(userProperties.getProperty("changes"));
-  var changeAdds = JSON.parse(userProperties.getProperty("changeAdds"));
   var reminders = JSON.parse(userProperties.getProperty("reminders"));
-  var results = {"currentName": currentName, "currentType": currentType, "newName": newName, "newType": newType, "log": log, "changes": changes, "changeAdds": changeAdds, "reminders": reminders};
+  var results = {"currentName": currentName, "currentType": currentType, "newName": newName, "newType": newType, "log": log, "changes": changes, "reminders": reminders};
   return results;
 }
 
@@ -159,7 +148,6 @@ function showResults(results) {
     userProperties.setProperty("currentType", JSON.stringify(results.getCurrentType()));
     userProperties.setProperty("log", JSON.stringify(results.getLog()));
     userProperties.setProperty("changes", JSON.stringify(results.getChanges()));
-    userProperties.setProperty("changeAdds", JSON.stringify(results.getChangeAdds()));
     userProperties.setProperty("reminders", JSON.stringify(results.getReminders()));
     
     if (results.currentType == "SR") {
@@ -202,15 +190,9 @@ function confirmNewRound() {
   });
   
   var changeArr = results.changes;
-  var changeAddArr = results.changeAdds;
   for (i=0; i<changeArr.length; i++) {
     if (!changeArr[i][3]) {
       data[changeArr[i][0]][changeArr[i][1]] = changeArr[i][2];
-    }
-  }
-  for (i=0; i<changeAddArr.length; i++) {
-    if (!changeAddArr[i][3]) {
-      data[changeAddArr[i][0]][changeAddArr[i][1]] += changeAddArr[i][2];
     }
   }
   
@@ -230,11 +212,6 @@ function confirmNewRound() {
   for (i=0; i<changeArr.length; i++) {
     if (changeArr[i][3]) {
       data[changeArr[i][0]][changeArr[i][1]] = changeArr[i][2];
-    }
-  }
-  for (i=0; i<changeAddArr.length; i++) {
-    if (changeAddArr[i][3]) {
-      data[changeAddArr[i][0]][changeAddArr[i][1]] += changeAddArr[i][2];
     }
   }
   
@@ -818,22 +795,28 @@ function createNewRound(formObject) {
       if (discarded > 0) {
         results.change(trainsRow, cos[i].col, canDiscard.concat(thisPerms).join(","));
         
-        // Add discarded trains to bank pool
-        for (j=0; j<removed.length; j++) {
-          // Do not add 7 trains to bank pool; there is no spot for them
-          if (removed[j] != "7") {
-            var discardRow = bankPoolRow + parseInt(removed[j]) - 1;
-            var curPoolTrains = results.data[discardRow][bankPoolCol];
-            if (curPoolTrains.replace(/\s/g, '') == "") {
-              results.change(discardRow, bankPoolCol + 2, 1);
-            }
-            else {
-              results.change(discardRow, bankPoolCol + 2, parseInt(results.data[discardRow][bankPoolCol + 2]) + 1);
+        var discardLoc = "";
+        // NdeM does not discard to bank pool
+        if (cos[i].name.toUpperCase() !== "NDEM") {
+          var discardLoc = "to bank pool ";
+          // Add discarded trains to bank pool
+          for (j=0; j<removed.length; j++) {
+            // Do not add 7 trains to bank pool; there is no spot for them
+            // L trains are not added to bank pool
+            if (removed[j] != "7" && removed[j] != "L") {
+              var discardRow = bankPoolRow + parseInt(removed[j]) - 1;
+              var curPoolTrains = results.data[discardRow][bankPoolCol];
+              if (curPoolTrains.replace(/\s/g, '') == "") {
+                results.change(discardRow, bankPoolCol + 2, 1);
+              }
+              else {
+                results.change(discardRow, bankPoolCol + 2, parseInt(results.data[discardRow][bankPoolCol + 2]) + 1);
+              }
             }
           }
         }
         var plural = discarded == 1 ? "" : "s";
-        results.log(cos[i].name + " discards " + discarded + " train" + plural + " (" + removed.join(', ') + ") to bank pool to meet limit of " + cos[i].limit);
+        results.log(cos[i].name + " discards " + discarded + " train" + plural + " (" + removed.join(', ') + ") " + discardLoc + "to meet limit of " + cos[i].limit);
       }
     }
     
