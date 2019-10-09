@@ -5,8 +5,9 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
     <script>
-      function handleFormSubmit(formObject) {
+      function handleFormSubmit() {
         btnLoading();
+        var formObject = document.getElementById('roundForm');
         google.script.run.withSuccessHandler(handleValidateForm).validateForm(formObject);
       }
       
@@ -87,7 +88,7 @@
  </head>
 <body>
 
-<form id="roundForm" onsubmit="handleFormSubmit(this)">
+<form id="roundForm">
   <div class="container">
     <div class="row">
       <!-- Text -->
@@ -140,7 +141,7 @@ function populateNames(names) {
     <div class="row mt-3">
       <div class="col-sm-4 offset-sm-4">
         <div class="form-group">
-          <button name="button-submit" id="submit" class="btn btn-success btn-block" type="submit">Create!</button>
+          <button name="button-submit" type="button" id="submit" class="btn btn-success btn-block" onclick="handleFormSubmit()">Create!</button>
         </div>
       </div>
     </div>
