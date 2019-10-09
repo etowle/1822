@@ -103,7 +103,7 @@ function Results() {
   }
   
   // Change a data value by adding to the existing value
-  this.changeAdd = function(i, j, val) {
+  this.changeAdd = function(i, j, val, delay) {
     this.changes.push([i, j, this.data[i][j] + val, false]);
   }
   
@@ -673,16 +673,19 @@ function createNewRound(formObject) {
         }
         
         var thisTrainsRemaining = results.data[l2Row + i][remainingTrainsCol];
+        var thisTrainsBought = results.data[l2Row + i][usedTrainsCol];
         if (thisTrainsRemaining == "unlimited" || thisTrainsRemaining > 0) {
           // Add acquired train to NdeM
           results.changeAdd(l2Row + i, usedTrainsCol, 1);
+          thisTrainsBought++;
           var acquiredType = i < 2 ? trainType : results.data[l2Row + i][trainTypeCol];
           results.changeAdd(trainsRow, ndemCol, "," + acquiredType);
           results.log("NdeM acquires " + acquiredType + " train through removal of minor " + removedMinor);
           
-          // Did this trigger a phase change? I.e., available and remaining trains are equal
+          // Did this trigger a phase change?
+          // I.e., available and bought trains are equal
           var thisTrainsAvailable = results.data[l2Row + i][availableTrainsCol];
-          if (thisTrainsAvailable == thisTrainsRemaining) {
+          if (thisTrainsAvailable == thisTrainsBought) {
             phase++;
             results.change(phaseRow, 0, phase);
             results.log("Phase " + phase + " begins");
