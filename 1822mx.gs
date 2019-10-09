@@ -75,15 +75,6 @@ function Results() {
   this.lastRow = 0;
   this.lastCol = 0;
   
-  this.getNewName = function() { return this.newName; }
-  this.getNewType = function() { return this.newType; }
-  this.getCurrentName = function() { return this.currentName; }
-  this.getCurrentType = function() { return this.currentType; }
-  this.getChanges = function() { return this.changes; }
-  this.getLog = function() { return this.logged; }
-  this.printLog = function() { return this.logged.join("\n"); }
-  this.printErrors = function() { return this.errors.join("\n"); }
-  this.getReminders = function() { return this.reminders.join("\n"); }
   this.log = function(val) { this.logged.push(val); }
   this.reminder = function(val) { this.reminders.push(val); }
   this.error = function(val) { this.errors.push(val); }
@@ -120,6 +111,39 @@ function Results() {
     }
     return false;
   }
+
+  this.show = function() {
+    var ui = SpreadsheetApp.getUi();
+    if (this.errors.length > 0) {
+      // Show errors
+      ui.alert(this.errors.join("\n"));
+    }
+    else {
+      // Save data as strings using user properties
+      var userProperties = PropertiesService.getUserProperties();
+      userProperties.setProperty("newName", JSON.stringify(this.newName));
+      userProperties.setProperty("newType", JSON.stringify(this.newType));
+      userProperties.setProperty("currentName", JSON.stringify(this.currentName));
+      userProperties.setProperty("currentType", JSON.stringify(this.currentType));
+      userProperties.setProperty("log", JSON.stringify(this.logged));
+      userProperties.setProperty("changes", JSON.stringify(this.changes));
+      userProperties.setProperty("reminders", JSON.stringify(this.reminders));
+      userProperties.setProperty("lastRow", JSON.stringify(this.lastRow));
+      userProperties.setProperty("lastCol", JSON.stringify(this.lastCol));
+
+      if (this.currentType == "SR") {
+        // Open confirmation sidebar if this round is an SR
+        var html = HtmlService
+        .createHtmlOutputFromFile('confirm')
+        .setTitle('1822MX: Round summary');
+        SpreadsheetApp.getUi().showSidebar(html);
+      }
+      else {
+        // Otherwise, immediately create the new round
+        confirmNewRound();
+      }
+    }
+  }
 }
 
 function getResults() {
@@ -135,39 +159,6 @@ function getResults() {
   var lastCol = JSON.parse(userProperties.getProperty("lastCol"));
   var results = {"currentName": currentName, "currentType": currentType, "newName": newName, "newType": newType, "log": log, "changes": changes, "reminders": reminders, "lastRow": lastRow, "lastCol": lastCol};
   return results;
-}
-
-function showResults(results) {
-  var ui = SpreadsheetApp.getUi();
-  if (results.errors.length > 0) {
-    // Show errors
-    ui.alert(results.printErrors());
-  }
-  else {
-    // Save data as strings using user properties
-    var userProperties = PropertiesService.getUserProperties();
-    userProperties.setProperty("newName", JSON.stringify(results.getNewName()));
-    userProperties.setProperty("newType", JSON.stringify(results.getNewType()));
-    userProperties.setProperty("currentName", JSON.stringify(results.getCurrentName()));
-    userProperties.setProperty("currentType", JSON.stringify(results.getCurrentType()));
-    userProperties.setProperty("log", JSON.stringify(results.getLog()));
-    userProperties.setProperty("changes", JSON.stringify(results.getChanges()));
-    userProperties.setProperty("reminders", JSON.stringify(results.getReminders()));
-    userProperties.setProperty("lastRow", JSON.stringify(results.lastRow));
-    userProperties.setProperty("lastCol", JSON.stringify(results.lastCol));
-    
-    if (results.currentType == "SR") {
-      // Open confirmation sidebar if this round is an SR
-      var html = HtmlService
-      .createHtmlOutputFromFile('confirm')
-      .setTitle('1822MX: Round summary');
-      SpreadsheetApp.getUi().showSidebar(html);
-    }
-    else {
-      // Otherwise, immediately create the new round
-      confirmNewRound();
-    }
-  }
 }
 
 // Create new round from saved user property data
@@ -226,7 +217,7 @@ function confirmNewRound() {
   // Display reminders
   var ui = SpreadsheetApp.getUi();
   if (results.reminders.length > 0) {
-    ui.alert("Reminders", results.reminders, ui.ButtonSet.OK);
+    ui.alert("Don't forget!", results.reminders.join("\n"), ui.ButtonSet.OK);
   }
 }
 
@@ -355,7 +346,7 @@ function createNewRound(formObject) {
   const ALL_TRAINS = TRAINS.concat(PERMANENTS);
   
   // Get active sheet
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(results.getCurrentName());
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(results.currentName);
   
   // Get last row/column
   results.lastRow = sheet.getLastRow();
@@ -373,7 +364,7 @@ function createNewRound(formObject) {
   
   // Create map of player names to rows
   var playerIndices = results.data.indexOf2D(["PD", "Player"]);
-  if (results.checkIndex(playerIndices[0], "list of players")) { showResults(results); return; }
+  if (results.checkIndex(playerIndices[0], "list of players")) { return results.show(); }
   var playerRow = {};
   for (i=0; i<MAX_PLAYERS; i++) {
     var playerName = results.data[playerIndices[0] + 1 + i][playerIndices[1] + 1];
@@ -384,7 +375,7 @@ function createNewRound(formObject) {
   
   // Create map of minors to column numbers
   var minorIndices = results.data.indexOf2D("Minor Companies (president gets 1 cert for a minor. Enter a 1 for the president)");
-  if (results.checkIndex(minorIndices[0], "cells for minor ownership/shares")) { showResults(results); return; }
+  if (results.checkIndex(minorIndices[0], "cells for minor ownership/shares")) { return results.show(); }
   var minorCol = {};
   for (i=0; i<NUM_MINORS; i++) {
     minorCol[(i+1).toString()] = minorIndices[1] + i;
@@ -394,7 +385,7 @@ function createNewRound(formObject) {
   // Get column with row headers for minors ("Director", "Treasury", "Privates owned", etc.)
   var minorHeaderMatch = ["Director", "*", "Treasury", "Market $", "*", "Trains", "Name", "Home", "*", "Privates owned"];
   var minorHeaderIndices = results.data.indexOf2D(minorHeaderMatch, true);
-  if (results.checkIndex(minorHeaderIndices[0], "row headers for minors")) { showResults(results); return; }
+  if (results.checkIndex(minorHeaderIndices[0], "row headers for minors")) { return results.show(); }
   var directorRow = minorHeaderIndices[0];
   var treasuryRow = directorRow + 2;
   var marketRow = directorRow + 3;
@@ -402,47 +393,47 @@ function createNewRound(formObject) {
   
   // Get OR/SR
   var typeMatch = results.data.indexOf2D("Enter \nOR/SR");
-  if (results.checkIndex(typeMatch[0], "round type designation")) { showResults(results); return; }
+  if (results.checkIndex(typeMatch[0], "round type designation")) { return results.show(); }
   var typeRow = typeMatch[0] + 1;
   var typeCol = typeMatch[1];
   results.currentType = results.data[typeRow][typeCol];
   
   // Get "Misc" revenue income row for minors
   var miscIndices = results.data.indexOf2D(["Misc", "Revenue"], true);
-  if (results.checkIndex(miscIndices[0], "miscellaneous revenue row for minors")) { showResults(results); return; }
+  if (results.checkIndex(miscIndices[0], "miscellaneous revenue row for minors")) { return results.show(); }
   var miscRow = miscIndices[0];
   
   // Get row/column of private companies box
   var privateBoxMatch = ["Private Companies", "No."];
   var privateIndices = results.data.indexOf2D(privateBoxMatch, true);
-  if (results.checkIndex(privateIndices[0], "cells with private company information")) { showResults(results); return; }
+  if (results.checkIndex(privateIndices[0], "cells with private company information")) { return results.show(); }
   
   // Get row/column of major concessions box
   var concessionIndices = results.data.indexOf2D(["Concessions", "Income"], true);
-  if (results.checkIndex(concessionIndices[0], "cells with concession ownership information")) { showResults(results); return; }
+  if (results.checkIndex(concessionIndices[0], "cells with concession ownership information")) { return results.show(); }
   
   // Get majors column
   var majorsIndices = results.data.indexOf2D(["Majors", MAJORS[0]], true);
-  if (results.checkIndex(majorsIndices[0], "cells with major company share information")) { showResults(results); return; }
+  if (results.checkIndex(majorsIndices[0], "cells with major company share information")) { return results.show(); }
   var majorsCol = majorsIndices[1];
   var ndemCol = majorsCol + NUM_MAJORS;
   
   // Get column starting private bids
   var colPrivateBids = results.data[0].indexOf("Privates");
-  if (results.checkIndex(colPrivateBids, "private bid box")) { showResults(results); return; }
+  if (results.checkIndex(colPrivateBids, "private bid box")) { return results.show(); }
   
   // Get column starting minor bids
   var colMinorBids = results.data[0].indexOf("Minors");
-  if (results.checkIndex(colMinorBids, "minor bid box")) { showResults(results); return; }
+  if (results.checkIndex(colMinorBids, "minor bid box")) { return results.show(); }
   
   // Get column starting major concession bids
   var colConcessionBids = results.data[0].indexOf("Concessions");
-  if (results.checkIndex(colConcessionBids, "major concession bid box")) { showResults(results); return; }
+  if (results.checkIndex(colConcessionBids, "major concession bid box")) { return results.show(); }
   
   // Get row/column of train offer box
   var trainOfferMatch = ["Type", "Cost", "Available", "Bought (OR) & Exported (SR)", "Remaining", "Train Limit\nMin / Maj"];
   var trainOfferIndices = results.data.indexOf2D(trainOfferMatch);
-  if (results.checkIndex(trainOfferIndices[0], "train offer box")) { showResults(results); return; }
+  if (results.checkIndex(trainOfferIndices[0], "train offer box")) { return results.show(); }
   var trainTypeCol = trainOfferIndices[1];
   var availableTrainsCol = trainTypeCol + 2;
   var usedTrainsCol = trainTypeCol + 3;
@@ -453,13 +444,13 @@ function createNewRound(formObject) {
   // Get row for high bidder
   var winnerMatch = ["Bid", "Boxes", "High Bidder", "High $"];
   var winnerRow = results.data.indexOf2D(winnerMatch, true)[0];
-  if (results.checkIndex(winnerRow, "row for high bidder")) { showResults(results); return; }
+  if (results.checkIndex(winnerRow, "row for high bidder")) { return results.show(); }
   winnerRow += 2;
   var winningBidRow = winnerRow + 1;
   
   // Get row/column for minor draw pile box
   var minorDrawIndices = results.data.indexOf2D(["Order", "Minor"]);
-  if (results.checkIndex(minorDrawIndices[0], "minor draw pile")) { showResults(results); return; }
+  if (results.checkIndex(minorDrawIndices[0], "minor draw pile")) { return results.show(); }
   // Extract array of draw order
   var minorDrawRow = minorDrawIndices[0] + 1;
   var minorDrawCol = minorDrawIndices[1] + 1;
@@ -467,7 +458,7 @@ function createNewRound(formObject) {
   
   // Get row/column for private draw pile box
   var privateDrawIndices = results.data.indexOf2D(["Order", "Private"]);
-  if (results.checkIndex(privateDrawIndices[0], "private draw pile")) { showResults(results); return; }
+  if (results.checkIndex(privateDrawIndices[0], "private draw pile")) { return results.show(); }
   // Extract array of draw order
   var privateDrawRow = privateDrawIndices[0] + 1;
   var privateDrawCol = privateDrawIndices[1] + 1;
@@ -475,7 +466,7 @@ function createNewRound(formObject) {
   
   // Get row/column for major concession draw pile box
   var concessionDrawIndices = results.data.indexOf2D(["Order", "Concession"]);
-  if (results.checkIndex(concessionDrawIndices[0], "major concession draw pile")) { showResults(results); return; }
+  if (results.checkIndex(concessionDrawIndices[0], "major concession draw pile")) { return results.show(); }
   // Extract array of draw order
   var concessionDrawRow = concessionDrawIndices[0] + 2;
   var concessionDrawCol = concessionDrawIndices[1] + 1;
@@ -483,45 +474,45 @@ function createNewRound(formObject) {
   
   // Get row/column for end-of-round private ownership
   var privateOwnerIndices = results.data.indexOf2D("End of round");
-  if (results.checkIndex(privateOwnerIndices[0], "private ownership cells")) { showResults(results); return; }
+  if (results.checkIndex(privateOwnerIndices[0], "private ownership cells")) { return results.show(); }
   var privateOwnerRow = privateOwnerIndices[0];
   var privateOwnerCol = privateOwnerIndices[1];
   
   // Get row/column for end-of-round concession ownership
   var concessionOwnerIndices = results.data.indexOf2D("End Ownr");
-  if (results.checkIndex(concessionOwnerIndices[0], "concession ownership cells")) { showResults(results); return; }
+  if (results.checkIndex(concessionOwnerIndices[0], "concession ownership cells")) { return results.show(); }
   var concessionOwnerRow = concessionOwnerIndices[0];
   var concessionOwnerCol = concessionOwnerIndices[1];
   
   // Get row/column for bank pool trains
   var bankPoolIndices = results.data.indexOf2D(["Type", "Cost", "# Available", "# Bought", "# Remaining"]);
-  if (results.checkIndex(bankPoolIndices[0], "bank pool train cells")) { showResults(results); return; }
+  if (results.checkIndex(bankPoolIndices[0], "bank pool train cells")) { return results.show(); }
   var bankPoolRow = bankPoolIndices[0];
   var bankPoolCol = bankPoolIndices[1];
   
   // Get current phase
   var firstCol = results.data.map(function(value) { return value[0]; });
   var phaseRow = firstCol.indexOf("Phase");
-  if (results.checkIndex(phaseRow, "current phase")) { showResults(results); return; }
+  if (results.checkIndex(phaseRow, "current phase")) { return results.show(); }
   phaseRow++;
   var phase = results.data[phaseRow][0];
   results.log("Currently in phase " + phase);
   
   // Get row/column for previous sheet
   var prevSheetIndices = results.data.indexOf2D("Previous Sheet");
-  if (results.checkIndex(prevSheetIndices[0], "previous sheet name cell")) { showResults(results); return; }
+  if (results.checkIndex(prevSheetIndices[0], "previous sheet name cell")) { return results.show(); }
   var prevSheetRow = prevSheetIndices[0];
   var prevSheetCol = prevSheetIndices[1] + 2;
   
   // Get row/column for income/spending cells
   var incomeIndices = results.data.indexOf2D(["Stock", "Pvts/Conc", "Divs", "Bids", "Loan +/-", "Misc"]);
-  if (results.checkIndex(incomeIndices[0], "previous sheet name cell")) { showResults(results); return; }
+  if (results.checkIndex(incomeIndices[0], "previous sheet name cell")) { return results.show(); }
   var incomeRow = incomeIndices[0] + 1;
   var incomeCol = incomeIndices[1];
   
   // Get row for operational data
   var operateIndices = results.data.indexOf2D(["Track", "Token", "Train Purchases"], true);
-  if (results.checkIndex(operateIndices[0], "operational data cells")) { showResults(results); return; }
+  if (results.checkIndex(operateIndices[0], "operational data cells")) { return results.show(); }
   var operateRow = operateIndices[0];
   
   // HOUSEKEEPING FOR END OF STOCK ROUND
@@ -621,7 +612,7 @@ function createNewRound(formObject) {
         
         // Search for last minor in draw pile
         var minorDrawMatch = minorDraws.indexOf(lastMinor);
-        if (results.checkIndex(minorDrawMatch, lastMinor + " in minor draw pile")) { showResults(results); return; }
+        if (results.checkIndex(minorDrawMatch, lastMinor + " in minor draw pile")) { return results.show(); }
         if (minorDrawMatch < NUM_MINORS - 1) {
           // If last bid minor is not on bottom of draw pile, add the next minor to ongoing list
           lastMinor = minorDraws[minorDrawMatch + 1];
@@ -837,8 +828,7 @@ function createNewRound(formObject) {
     if (trainErrors.length > 0) {
       var errorMsg = "Error rusting trains. Invalid trains: " + trainErrors.join("; ");
       results.error(errorMsg);
-      showResults(results);
-      return;
+      return results.show();
     }
     
     // RESOLVE PRIVATE BIDS
@@ -864,8 +854,7 @@ function createNewRound(formObject) {
       // Is this item is the list of valid items?
       if (!PRIVATES.includes(private.toString().toUpperCase())) {
         results.error("Private \"" + private + "\" in bid box " + (i+1) + " not recognized");
-        showResults(results);
-        return;
+        return results.show();
       }
       lastPrivate = private;
       
@@ -898,7 +887,7 @@ function createNewRound(formObject) {
         
         // Search for last private in draw pile
         var privateDrawMatch = privateDraws.indexOf(lastPrivate);
-        if (results.checkIndex(privateDrawMatch, lastPrivate + " in private draw pile")) { showResults(results); return; }
+        if (results.checkIndex(privateDrawMatch, lastPrivate + " in private draw pile")) { return results.show(); }
         if (privateDrawMatch < NUM_PRIVATES - 1) {
           // If last bid private is not on bottom of draw pile, add the next private to ongoing list
           lastPrivate = privateDraws[privateDrawMatch + 1];
@@ -948,8 +937,7 @@ function createNewRound(formObject) {
       // Is this item is the list of valid items?
       if (!MAJORS.includes(concession.toUpperCase())) {
         results.error("Major concession \"" + concession + "\" in bid box " + (i+1) + " not recognized");
-        showResults(results);
-        return;
+        return results.show();
       }
       lastConcession = concession;
       
@@ -998,7 +986,7 @@ function createNewRound(formObject) {
         
         // Search for last concession in draw pile
         var concessionDrawMatch = concessionDraws.indexOf(lastConcession);
-        if (results.checkIndex(concessionDrawMatch, lastConcession + " in concession draw pile")) { showResults(results); return; }
+        if (results.checkIndex(concessionDrawMatch, lastConcession + " in concession draw pile")) { return results.show(); }
         if (concessionDrawMatch < NUM_MAJORS - 1) {
           // If last bid private is not on bottom of draw pile, add the next private to ongoing list
           lastConcession = concessionDraws[concessionDrawMatch + 1];
@@ -1033,8 +1021,7 @@ function createNewRound(formObject) {
           var stockMatch = STOCK_PRICES.indexOf(curPrice);
           if (stockMatch == -1) {
             results.error("Stock price of $" + curPrice + " for major " + thisMajor + " not valid");
-            showResults(results);
-            return;
+            return results.show();
           }
           var newPrice = STOCK_PRICES[Math.min(STOCK_PRICES.length - 1, stockMatch + 1)];
           results.change(marketRow, majorsCol + i, newPrice);
@@ -1049,10 +1036,8 @@ function createNewRound(formObject) {
         }
         else {
           results.error("Stock price $" + curPrice + " for major " + thisMajor + " is not valid");
-          showResults(results);
-          return;
+          return results.show();
         }
-        
       }
     }
     if (soldoutMajors.length > 0) {
@@ -1127,6 +1112,5 @@ function createNewRound(formObject) {
   }
   
   // Prompt user with results
-  showResults(results);
-  return;
+  return results.show();
 }
