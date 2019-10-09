@@ -44,14 +44,14 @@ function populateLog(results) {
   }
 }
     </script>
-    <form id="roundForm" onsubmit="handleFormSubmit()">
+    <form id="roundForm">
       <div class="container">
         <div class="row justify-content-around my-3">
           <div class="col-xs-4">
-            <button name="button-submit" id="submit" class="btn btn-success btn-block" type="submit">&nbsp;&nbsp;&nbsp;Confirm&nbsp;&nbsp;&nbsp;</button>
+            <button name="button-submit" id="submit" type="button" class="btn btn-success btn-block" onclick="handleFormSubmit()">&nbsp;&nbsp;&nbsp;Confirm&nbsp;&nbsp;&nbsp;</button>
           </div>
           <div class="col-xs-4">
-            <button name="button-cancel" id="cancel" class="btn btn-secondary btn-block" type="button" onclick="closeSidebar()">&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;</button>
+            <button name="button-cancel" id="cancel" type="button" class="btn btn-secondary btn-block" onclick="closeSidebar()">&nbsp;&nbsp;&nbsp;Cancel&nbsp;&nbsp;&nbsp;</button>
           </div>
         </div>
       </div>
