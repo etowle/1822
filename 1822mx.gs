@@ -72,6 +72,8 @@ function Results() {
   this.logged = [];
   this.reminders = [];
   this.errors = [];
+  this.lastRow = 0;
+  this.lastCol = 0;
   
   this.getNewName = function() { return this.newName; }
   this.getNewType = function() { return this.newType; }
@@ -129,7 +131,9 @@ function getResults() {
   var log = JSON.parse(userProperties.getProperty("log"));
   var changes = JSON.parse(userProperties.getProperty("changes"));
   var reminders = JSON.parse(userProperties.getProperty("reminders"));
-  var results = {"currentName": currentName, "currentType": currentType, "newName": newName, "newType": newType, "log": log, "changes": changes, "reminders": reminders};
+  var lastRow = JSON.parse(userProperties.getProperty("lastRow"));
+  var lastCol = JSON.parse(userProperties.getProperty("lastCol"));
+  var results = {"currentName": currentName, "currentType": currentType, "newName": newName, "newType": newType, "log": log, "changes": changes, "reminders": reminders, "lastRow": lastRow, "lastCol": lastCol};
   return results;
 }
 
@@ -149,6 +153,8 @@ function showResults(results) {
     userProperties.setProperty("log", JSON.stringify(results.getLog()));
     userProperties.setProperty("changes", JSON.stringify(results.getChanges()));
     userProperties.setProperty("reminders", JSON.stringify(results.getReminders()));
+    userProperties.setProperty("lastRow", JSON.stringify(results.lastRow));
+    userProperties.setProperty("lastCol", JSON.stringify(results.lastCol));
     
     if (results.currentType == "SR") {
       // Open confirmation sidebar if this round is an SR
@@ -172,15 +178,13 @@ function confirmNewRound() {
   // Override changed data in specified sheet
   var source = SpreadsheetApp.getActiveSpreadsheet();
   var curSheet = source.getSheetByName(results.currentName);
-  var lastRow = curSheet.getLastRow();
-  var lastCol = curSheet.getLastColumn();
-  var data = curSheet.getRange(1, 1, lastRow, lastCol).getValues();
+  var data = curSheet.getRange(1, 1, results.lastRow, results.lastCol).getValues();
   
   // setValues() overrides formulas, and setFormulas() overrides values
   // RangeList objects cannot be used to simultaneously set different values
   // Workaround: set all formulas as strings
   // Allows single Range.setValues() at end, rather than multiple calls to Range.setValue()
-  var formulas  = curSheet.getRange(1, 1, lastRow, lastCol).getFormulas();
+  var formulas  = curSheet.getRange(1, 1, results.lastRow, results.lastCol).getFormulas();
   data = data.map(function(row, i) {
     return row.map(function(val, j) {
       var formula = formulas[i][j];
@@ -197,7 +201,7 @@ function confirmNewRound() {
   }
   
   // Set values
-  curSheet.getRange(1, 1, lastRow, lastCol).setValues(data);
+  curSheet.getRange(1, 1, results.lastRow, results.lastCol).setValues(data);
   SpreadsheetApp.flush();
   
   // Copy to new spreadsheet
@@ -216,7 +220,7 @@ function confirmNewRound() {
   }
   
   // Update values
-  newSheet.getRange(1, 1, lastRow, lastCol).setValues(data);
+  newSheet.getRange(1, 1, results.lastRow, results.lastCol).setValues(data);
   SpreadsheetApp.flush();
   
   // Display reminders
@@ -225,7 +229,6 @@ function confirmNewRound() {
     ui.alert("Reminders", results.reminders, ui.ButtonSet.OK);
   }
 }
-
 
 // Find difference between two arrays
 Array.prototype.diff = function(compArr) {
@@ -355,11 +358,11 @@ function createNewRound(formObject) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(results.getCurrentName());
   
   // Get last row/column
-  var lastRow = sheet.getLastRow();
-  var lastCol = sheet.getLastColumn();
+  results.lastRow = sheet.getLastRow();
+  results.lastCol = sheet.getLastColumn();
   
   // Retrieve all data
-  results.data = sheet.getRange(1, 1, lastRow, lastCol).getValues();
+  results.data = sheet.getRange(1, 1, results.lastRow, results.lastCol).getValues();
   
   // Get number of players in cell B1
   // Like the sheet, this check rounds floats to integers
@@ -1108,7 +1111,6 @@ function createNewRound(formObject) {
   for (j=0; j<NUM_MAJORS + 1; j++) {
     results.change(operateRow + 10, majorsCol + j, "", true);
   }
-  
   
   for (i=0; i<MAX_PLAYERS; i++) {
     // Clear out SR bids
