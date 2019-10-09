@@ -69,6 +69,7 @@ function Results() {
   this.currentType = "";
   this.data = [];
   this.changes = [];
+  this.changeAdds = [];
   this.logged = [];
   this.reminders = [];
   this.errors = [];
@@ -78,6 +79,7 @@ function Results() {
   this.getCurrentName = function() { return this.currentName; }
   this.getCurrentType = function() { return this.currentType; }
   this.getChanges = function() { return this.changes; }
+  this.getChangeAdds = function() { return this.changeAdds; }
   this.getLog = function() { return this.logged; }
   this.printLog = function() { return this.logged.join("\n"); }
   this.printErrors = function() { return this.errors.join("\n"); }
@@ -104,7 +106,15 @@ function Results() {
   
   // Change a data value by adding to the existing value
   this.changeAdd = function(i, j, val, delay) {
-    this.changes.push([i, j, this.data[i][j] + val, false]);
+    // Default value
+    if (delay == null) {
+      delay = false;
+    }
+    // Immediately make changes that should be instantaneous
+    if (!delay) {
+      this.data[i][j] += val;
+    }
+    this.changeAdds.push([i, j, val, false]);
   }
   
   // Check if a value is -1, and if so, log what was being searched
@@ -128,8 +138,9 @@ function getResults() {
   var currentType = JSON.parse(userProperties.getProperty("currentType"));
   var log = JSON.parse(userProperties.getProperty("log"));
   var changes = JSON.parse(userProperties.getProperty("changes"));
+  var changeAdds = JSON.parse(userProperties.getProperty("changeAdds"));
   var reminders = JSON.parse(userProperties.getProperty("reminders"));
-  var results = {"currentName": currentName, "currentType": currentType, "newName": newName, "newType": newType, "log": log, "changes": changes, "reminders": reminders};
+  var results = {"currentName": currentName, "currentType": currentType, "newName": newName, "newType": newType, "log": log, "changes": changes, "changeAdds": changeAdds, "reminders": reminders};
   return results;
 }
 
@@ -148,6 +159,7 @@ function showResults(results) {
     userProperties.setProperty("currentType", JSON.stringify(results.getCurrentType()));
     userProperties.setProperty("log", JSON.stringify(results.getLog()));
     userProperties.setProperty("changes", JSON.stringify(results.getChanges()));
+    userProperties.setProperty("changeAdds", JSON.stringify(results.getChangeAdds()));
     userProperties.setProperty("reminders", JSON.stringify(results.getReminders()));
     
     if (results.currentType == "SR") {
@@ -190,9 +202,15 @@ function confirmNewRound() {
   });
   
   var changeArr = results.changes;
+  var changeAddArr = results.changeAdds;
   for (i=0; i<changeArr.length; i++) {
     if (!changeArr[i][3]) {
       data[changeArr[i][0]][changeArr[i][1]] = changeArr[i][2];
+    }
+  }
+  for (i=0; i<changeAddArr.length; i++) {
+    if (!changeAddArr[i][3]) {
+      data[changeAddArr[i][0]][changeAddArr[i][1]] += changeAddArr[i][2];
     }
   }
   
@@ -212,6 +230,11 @@ function confirmNewRound() {
   for (i=0; i<changeArr.length; i++) {
     if (changeArr[i][3]) {
       data[changeArr[i][0]][changeArr[i][1]] = changeArr[i][2];
+    }
+  }
+  for (i=0; i<changeAddArr.length; i++) {
+    if (changeAddArr[i][3]) {
+      data[changeAddArr[i][0]][changeAddArr[i][1]] += changeAddArr[i][2];
     }
   }
   
@@ -422,7 +445,7 @@ function createNewRound(formObject) {
   var majorsIndices = results.data.indexOf2D(["Majors", MAJORS[0]], true);
   if (results.checkIndex(majorsIndices[0], "cells with major company share information")) { showResults(results); return; }
   var majorsCol = majorsIndices[1];
-  var ndemCol = majorsCol + MAJORS.length;
+  var ndemCol = majorsCol + NUM_MAJORS;
   
   // Get column starting private bids
   var colPrivateBids = results.data[0].indexOf("Privates");
@@ -654,7 +677,12 @@ function createNewRound(formObject) {
       
       // Add trains to NdeM's train row
       for (i=0; i<ndemNumTrains; i++) {
-        results.changeAdd(trainsRow, ndemCol, "," + trainType);
+        if (results.data[trainsRow][ndemCol].toString().replace(/\s/g, '') == "") {
+          results.change(trainsRow, ndemCol, trainType);
+        }
+        else {
+          results.changeAdd(trainsRow, ndemCol, "," + trainType);
+        }
       }
       var plural = ndemNumTrains == 1 ? "" : "s";
       results.log("NdeM acquires " + ndemNumTrains + " " + trainType + " train" + plural + " (of " + remainingL2 + " remaining)");
