@@ -671,9 +671,9 @@ function createNewRound(formObject) {
           continue;
         }
         
-        var thisTrainsRemaining = results.data[l2Row + i][remainingTrainsCol];
+        var thisTrainsAvailable = results.data[l2Row + i][availableTrainsCol];
         var thisTrainsBought = results.data[l2Row + i][usedTrainsCol];
-        if (thisTrainsRemaining == "unlimited" || thisTrainsRemaining > 0) {
+        if (thisTrainsAvailable == "unlimited" || thisTrainsAvailable > thisTrainsBought) {
           // Add acquired train to NdeM
           results.changeAdd(l2Row + i, usedTrainsCol, 1);
           thisTrainsBought++;
@@ -682,9 +682,8 @@ function createNewRound(formObject) {
           results.log("NdeM acquires " + acquiredType + " train through removal of minor " + removedMinor);
           
           // Did this trigger a phase change?
-          // I.e., available and bought trains are equal
-          var thisTrainsAvailable = results.data[l2Row + i][availableTrainsCol];
-          if (thisTrainsAvailable == thisTrainsBought) {
+          // I.e., this was the first train bought of this type
+          if (thisTrainsBought == 1) {
             phase++;
             results.change(phaseRow, 0, phase);
             results.log("Phase " + phase + " begins");
