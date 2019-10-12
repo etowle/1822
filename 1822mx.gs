@@ -116,7 +116,7 @@ function Results() {
     var ui = SpreadsheetApp.getUi();
     if (this.errors.length > 0) {
       // Show errors
-      ui.alert(this.errors.join("\n"));
+      ui.alert("Error", this.errors.join("\n"), ui.ButtonSet.OK);
     }
     else {
       // Save data as strings using user properties
