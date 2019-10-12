@@ -86,10 +86,10 @@ function Results() {
       delay = false;
     }
     
-    if (this.data[i][j] != val) {
+    if (this.data[i][j] !== val) {
       this.data[i][j] = val;
       // If a change has already been pushed for this row/column/delay combination, remove it
-      this.changes = this.changes.filter(function(e) { return (e[0] != i || e[1] != j || e[3] != delay); });
+      this.changes = this.changes.filter(function(e) { return (e[0] !== i || e[1] !== j || e[3] !== delay); });
       this.changes.push([i, j, val, delay]);
     }
   }
