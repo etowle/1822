@@ -387,6 +387,7 @@ function createNewRound(formObject) {
   var minorHeaderIndices = results.data.indexOf2D(minorHeaderMatch, true);
   if (results.checkIndex(minorHeaderIndices[0], "row headers for minors")) { return results.show(); }
   var directorRow = minorHeaderIndices[0];
+  var coBankPoolRow = directorRow + 1;
   var treasuryRow = directorRow + 2;
   var marketRow = directorRow + 3;
   var trainsRow = directorRow + 5;
@@ -1011,7 +1012,7 @@ function createNewRound(formObject) {
     var soldoutMajors = [];
     for (i=0; i<NUM_MAJORS; i++) {
       // Are all shares of this major sold?
-      if (results.data[treasuryRow][majorsCol + i] < 1) {
+      if (results.data[treasuryRow][majorsCol + i] == 0 && results.data[coBankPoolRow][majorsCol + i] == 0) {
         // Increment market value
         var curPrice = results.data[marketRow][majorsCol + i];
         if (STOCK_PRICES.includes(curPrice)) {
