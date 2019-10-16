@@ -3,6 +3,7 @@
 */
 
 // Compatible with 1822MX v0.1 playtest rules
+// https://github.com/etowle/1822mx
 
 // Add a custom menu to the active spreadsheet, including a separator and a sub-menu.
 function onOpen(e) {
@@ -826,7 +827,7 @@ function createNewRound(formObject) {
     
     // Check if invalid trains were found
     if (trainErrors.length > 0) {
-      var errorMsg = "Error rusting trains. Invalid trains: " + trainErrors.join("; ");
+      var errorMsg = "Invalid trains: " + trainErrors.join("; ");
       results.error(errorMsg);
       return results.show();
     }
