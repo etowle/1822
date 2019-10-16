@@ -3,7 +3,6 @@
 */
 
 // Compatible with 1822MX v0.1 playtest rules
-// https://github.com/etowle/1822mx
 
 // Add a custom menu to the active spreadsheet, including a separator and a sub-menu.
 function onOpen(e) {
@@ -827,7 +826,7 @@ function createNewRound(formObject) {
     
     // Check if invalid trains were found
     if (trainErrors.length > 0) {
-      var errorMsg = "Invalid trains: " + trainErrors.join("; ");
+      var errorMsg = "Error rusting trains. Invalid trains: " + trainErrors.join("; ");
       results.error(errorMsg);
       return results.show();
     }
@@ -1042,7 +1041,7 @@ function createNewRound(formObject) {
       }
     }
     if (soldoutMajors.length > 0) {
-      results.reminder("Increase the stock value for soldout majors: " + soldoutMajors.join(","));
+      results.reminder("Increase the stock value for soldout majors: " + soldoutMajors.join(", "));
     }
     
     // DETERMINE NEW PLAYER ORDER; take P7 and previous player order into account
