@@ -1049,18 +1049,19 @@ function createNewRound(formObject) {
     var ownerP7 = results.data[privateOwnerRow + 7][privateOwnerCol];
     var players = [];
     for (i=0; i<numPlayers; i++) {
+      var thisRow = 2 + i;
       var playerName = results.data[2+i][1];
       // In case of tie, retain player order from previous SR
       // To account for this, add a small amount <1 based on previous order
-      var thisCash = (playerName == ownerP7 ? 2 : 1) * results.data[2+i][4] + 0.1*(numPlayers - results.data[2+i][0]);
-      players.push({name: playerName, cash: thisCash});
+      var playerCash = (playerName == ownerP7 ? 2 : 1) * results.data[2+i][4] + 0.1*(numPlayers - results.data[2+i][0]);
+      players.push({name: playerName, cash: playerCash, row: thisRow});
     }
     players.sort(function(a,b) {
       return ((a.cash > b.cash) ? -1 : ((a.cash < b.cash) ? 1 : 0));
     });
+    // Update player order
     for (i=0; i<numPlayers; i++) {
-      var thisOrder = players.map(function(a) { return a.name; }).indexOf(results.data[2+i][1]) + 1;
-      results.change(2 + i, 0, thisOrder, true);
+      results.change(players[i].row, 0, i + 1, true);
     }
     
     results.log("New player order: " + players.map(function(a) { return a.name; }).join(', '));
