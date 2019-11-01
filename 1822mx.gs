@@ -333,6 +333,7 @@ function createNewRound(formObject) {
   
   // Stock market values
   const STOCK_PRICES = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100, 110, 120, 135, 150, 165, 180, 200, 220, 245, 270, 300, 330, 360, 400, 450, 500, 550, 600];
+  const YELLOW_ZONE_END = 45;
   
   // Train types
   const NUM_TRAIN_TYPES = 7;
@@ -390,6 +391,7 @@ function createNewRound(formObject) {
   var coBankPoolRow = directorRow + 1;
   var treasuryRow = directorRow + 2;
   var marketRow = directorRow + 3;
+  var yellowZoneRow = directorRow + 4;
   var trainsRow = directorRow + 5;
   
   // Get OR/SR
@@ -1031,6 +1033,12 @@ function createNewRound(formObject) {
           }
           else {
             shareIncrease += " Stock price increases from $" + curPrice + " to $" + newPrice
+            
+            // Did this stock move out of the yellow zone?
+            if (curPrice == YELLOW_ZONE_END && newPrice > curPrice) {
+              shareIncrease += " (now out of yellow zone)";
+              results.change(yellowZoneRow, majorsCol + i, "N");
+            }
           }
           results.log(shareIncrease);
         }
