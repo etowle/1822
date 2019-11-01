@@ -3,6 +3,7 @@
 */
 
 // Compatible with 1822MX v0.1 playtest rules
+// https://github.com/etowle/1822mx
 
 // Add a custom menu to the active spreadsheet, including a separator and a sub-menu.
 function onOpen(e) {
@@ -121,16 +122,9 @@ function Results() {
     else {
       // Save data as strings using user properties
       var userProperties = PropertiesService.getUserProperties();
-      userProperties.setProperty("newName", JSON.stringify(this.newName));
-      userProperties.setProperty("newType", JSON.stringify(this.newType));
-      userProperties.setProperty("currentName", JSON.stringify(this.currentName));
-      userProperties.setProperty("currentType", JSON.stringify(this.currentType));
-      userProperties.setProperty("log", JSON.stringify(this.logged));
-      userProperties.setProperty("changes", JSON.stringify(this.changes));
-      userProperties.setProperty("reminders", JSON.stringify(this.reminders));
-      userProperties.setProperty("lastRow", JSON.stringify(this.lastRow));
-      userProperties.setProperty("lastCol", JSON.stringify(this.lastCol));
-
+      var queuedChanges = {"newName": this.newName, "newType": this.newType, "currentName": this.currentName, "currentType": this.currentType, "log": this.logged, "changes": this.changes, "reminders": this.reminders, "lastRow": this.lastRow, "lastCol": this.lastCol};
+      userProperties.setProperty("queuedChanges", JSON.stringify(queuedChanges));
+      
       if (this.currentType == "SR") {
         // Open confirmation sidebar if this round is an SR
         var html = HtmlService
@@ -146,36 +140,27 @@ function Results() {
   }
 }
 
-function getResults() {
+function getQueuedChanges() {
   var userProperties = PropertiesService.getUserProperties();
-  var newName = JSON.parse(userProperties.getProperty("newName"));
-  var newType = JSON.parse(userProperties.getProperty("newType"));
-  var currentName = JSON.parse(userProperties.getProperty("currentName"));
-  var currentType = JSON.parse(userProperties.getProperty("currentType"));
-  var log = JSON.parse(userProperties.getProperty("log"));
-  var changes = JSON.parse(userProperties.getProperty("changes"));
-  var reminders = JSON.parse(userProperties.getProperty("reminders"));
-  var lastRow = JSON.parse(userProperties.getProperty("lastRow"));
-  var lastCol = JSON.parse(userProperties.getProperty("lastCol"));
-  var results = {"currentName": currentName, "currentType": currentType, "newName": newName, "newType": newType, "log": log, "changes": changes, "reminders": reminders, "lastRow": lastRow, "lastCol": lastCol};
-  return results;
+  var queuedChanges = JSON.parse(userProperties.getProperty("queuedChanges"));
+  return queuedChanges;
 }
 
 // Create new round from saved user property data
 function confirmNewRound() {
-  // Get results
-  var results = getResults();
+  // Get queued changes
+  var queuedChanges = getQueuedChanges();
   
   // Override changed data in specified sheet
   var source = SpreadsheetApp.getActiveSpreadsheet();
-  var curSheet = source.getSheetByName(results.currentName);
-  var data = curSheet.getRange(1, 1, results.lastRow, results.lastCol).getValues();
+  var curSheet = source.getSheetByName(queuedChanges.currentName);
+  var data = curSheet.getRange(1, 1, queuedChanges.lastRow, queuedChanges.lastCol).getValues();
   
   // setValues() overrides formulas, and setFormulas() overrides values
   // RangeList objects cannot be used to simultaneously set different values
   // Workaround: set all formulas as strings
   // Allows single Range.setValues() at end, rather than multiple calls to Range.setValue()
-  var formulas  = curSheet.getRange(1, 1, results.lastRow, results.lastCol).getFormulas();
+  var formulas  = curSheet.getRange(1, 1, queuedChanges.lastRow, queuedChanges.lastCol).getFormulas();
   data = data.map(function(row, i) {
     return row.map(function(val, j) {
       var formula = formulas[i][j];
@@ -184,7 +169,7 @@ function confirmNewRound() {
     });
   });
   
-  var changeArr = results.changes;
+  var changeArr = queuedChanges.changes;
   for (i=0; i<changeArr.length; i++) {
     if (!changeArr[i][3]) {
       data[changeArr[i][0]][changeArr[i][1]] = changeArr[i][2];
@@ -192,14 +177,14 @@ function confirmNewRound() {
   }
   
   // Set values
-  curSheet.getRange(1, 1, results.lastRow, results.lastCol).setValues(data);
+  curSheet.getRange(1, 1, queuedChanges.lastRow, queuedChanges.lastCol).setValues(data);
   SpreadsheetApp.flush();
   
   // Copy to new spreadsheet
   var newSheet = curSheet.copyTo(source);
   
   // Rename sheet and move
-  newSheet.setName(results.newName);
+  newSheet.setName(queuedChanges.newName);
   newSheet.activate();
   source.moveActiveSheet(0);
   
@@ -211,13 +196,13 @@ function confirmNewRound() {
   }
   
   // Update values
-  newSheet.getRange(1, 1, results.lastRow, results.lastCol).setValues(data);
+  newSheet.getRange(1, 1, queuedChanges.lastRow, queuedChanges.lastCol).setValues(data);
   SpreadsheetApp.flush();
   
   // Display reminders
   var ui = SpreadsheetApp.getUi();
-  if (results.reminders.length > 0) {
-    ui.alert("Don't forget!", results.reminders.join("\n"), ui.ButtonSet.OK);
+  if (queuedChanges.reminders.length > 0) {
+    ui.alert("Don't forget!", queuedChanges.reminders.join("\n"), ui.ButtonSet.OK);
   }
 }
 
