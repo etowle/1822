@@ -46,6 +46,8 @@
 
       // Detect if the given sheet is a stock round or operating round
       function detect(name) {
+        // First clear out currently detected round
+        $('#detected').html("&nbsp;");
         google.script.run.withSuccessHandler(updateDetect).detectRound(name);
       }
       

@@ -1,6 +1,6 @@
 /*
-* @OnlyCurrentDoc
-*/
+ * @OnlyCurrentDoc
+ */
 
 // Compatible with 1822MX v0.1 playtest rules
 // https://github.com/etowle/1822mx
@@ -55,8 +55,14 @@ function getSheetNames() {
 }
 
 // Detect whether a given sheet is a stock round or operating round
+// This value must be in the first 10 columns and the first 40 rows
 function detectRound(name) {
-  var round = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(name).getRange(18, 4).getValue();
+  var cells = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(name).getRange(1, 1, 40, 10).getValues();
+  var roundInd = cells.indexOf2D("Enter \nOR/SR");
+  if (roundInd[0] == -1 || roundInd[0] >= 39) {
+    return null;
+  }
+  var round = cells[roundInd[0] + 1][roundInd[1]];
   if (round == "OR" || round == "SR") {
     return round;
   }
