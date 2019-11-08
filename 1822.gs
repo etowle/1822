@@ -7,7 +7,7 @@
 // Compatible with:
 // 1822MX v0.1 playtest rules
 // 1822CA v1.0 rules
-// https://github.com/etowle/1822mx
+// https://github.com/etowle/1822
 
 // Add a custom menu to the active spreadsheet, including a separator and a sub-menu.
 function onOpen(e) {
