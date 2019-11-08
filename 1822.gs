@@ -2,7 +2,7 @@
  * @OnlyCurrentDoc
  */
 
-// Automatic round generator for  1822MX/1822CA
+// Automatic round generator for 1822MX/1822CA
 
 // Compatible with:
 // 1822MX v0.1 playtest rules
@@ -293,6 +293,8 @@ function getSetup(game) {
     var numMajors = majors.length - 1; // exclude NdeM
     var stockPrices = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100, 110, 120, 135, 150, 165, 180, 200, 220, 245, 270, 300, 330, 360, 400, 450, 500, 550, 600];
     var permanents = ["2P", "P2", "3/2", "3/2P", "P3/2", "LP", "PL", "P+", "+"];
+    var incomeHeaders = ["Stock", "Pvts/Conc", "Divs", "Bids", "Loan +/-", "Misc"];
+    var minorDirectorShares = 1;
   }
   else if (game == "1822ca") {
     var minPlayers = 3;
@@ -303,12 +305,14 @@ function getSetup(game) {
     var numMajors = majors.length;
     var stockPrices = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100, 110, 120, 135, 150, 165, 180, 200, 220, 245, 270, 300, 330, 360, 400, 450, 500, 550, 600, 650, 700];
     var permanents = ["2P", "P2", "LP", "PL", "P+", "+", "G"];
+    var incomeHeaders = ["Stock", "Pvts/Conc", "Divs", "Bids", "Loans", "Loan Int", "Misc"];
+    var minorDirectorShares = 2;
   }
   else {
     return null;
   }
   
-  return { "minPlayers": minPlayers, "maxPlayers": maxPlayers, "majors": majors, "numMinors": numMinors, "numPrivates": numPrivates, "numMajors": numMajors, "stockPrices": stockPrices, "permanents": permanents };
+  return { "minPlayers": minPlayers, "maxPlayers": maxPlayers, "majors": majors, "numMinors": numMinors, "numPrivates": numPrivates, "numMajors": numMajors, "stockPrices": stockPrices, "permanents": permanents, "incomeHeaders": incomeHeaders, "minorDirectorShares": minorDirectorShares};
 }
 
 // Check spreadsheet for errors and locate certain rows/columns
@@ -399,6 +403,9 @@ function createNewRound(formObject) {
   for (i=0; i<game.numMinors; i++) {
     minorCol[(i+1).toString()] = minorIndices[1] + i;
     minorCol["M" + (i+1)] = minorIndices[1] + i;
+    if (i < 10) {
+      minorCol["M0" + (i+1)] = minorIndices[1] + i;
+    }
   }
   
   // Get column with row headers for minors ("Director", "Treasury", "Privates owned", etc.)
@@ -526,15 +533,24 @@ function createNewRound(formObject) {
   var prevSheetCol = prevSheetIndices[1] + 2;
   
   // Get row/column for income/spending cells
-  var incomeIndices = results.data.indexOf2D(["Stock", "Pvts/Conc", "Divs", "Bids", "Loan +/-", "Misc"]);
-  if (results.checkIndex(incomeIndices[0], "previous sheet name cell")) { return results.show(); }
+  var incomeIndices = results.data.indexOf2D(game.incomeHeaders);
+  if (results.checkIndex(incomeIndices[0], "income header cells")) { return results.show(); }
   var incomeRow = incomeIndices[0] + 1;
   var incomeCol = incomeIndices[1];
   
   // Get row for operational data
-  var operateIndices = results.data.indexOf2D(["Track", "Token", "Train Purchases"], true);
+  var operateIndices = results.data.indexOf2D(["Track", "Token", "Train Purchases", "Train Sales", "Mergers", "Share Sales", "Mail Income", "Misc"], true);
   if (results.checkIndex(operateIndices[0], "operational data cells")) { return results.show(); }
   var operateRow = operateIndices[0];
+  var miscRow = operateRow + 7;
+  
+  // Get column for P8/P9 (1822CA)
+  if (results.gameName == "1822ca") {
+    var incomePrivateIndices = results.data.indexOf2D(["P8", "P9"]);
+    if (results.checkIndex(incomePrivateIndices[0], "cells for P8 and P9 income")) { return results.show(); }
+    var p8Col = incomePrivateIndices[1];
+    var p9Col = p8Col + 1;
+  }
   
   // HOUSEKEEPING FOR END OF STOCK ROUND
   if (results.currentType == "SR") {
@@ -596,7 +612,7 @@ function createNewRound(formObject) {
         var thisMinorCol = minorCol[minor.toString().toUpperCase()];
         
         // Add minor share count to owner's row
-        results.change(playerRow[winner], thisMinorCol, 1);
+        results.change(playerRow[winner], thisMinorCol, game.minorDirectorShares);
         
         // Add player as director
         results.change(directorRow, minorCol[minor.toString().toUpperCase()], winner);
@@ -699,11 +715,11 @@ function createNewRound(formObject) {
         var thisTrainsAvailable = results.data[l2Row + i][availableTrainsCol];
         var thisTrainsBought = results.data[l2Row + i][usedTrainsCol];
         if (thisTrainsAvailable == "unlimited" || thisTrainsAvailable > thisTrainsBought) {
+          thisTrainsBought++;
+          var acquiredType = i < 2 ? trainType : results.data[l2Row + i][trainTypeCol];
+          results.changeAdd(l2Row + i, usedTrainsCol, 1);
           if (results.gameName == "1822mx") {
             // Add acquired train to NdeM
-            results.changeAdd(l2Row + i, usedTrainsCol, 1);
-            thisTrainsBought++;
-            var acquiredType = i < 2 ? trainType : results.data[l2Row + i][trainTypeCol];
             results.changeAdd(trainsRow, ndemCol, "," + acquiredType);
             results.log("NdeM acquires " + acquiredType + " train through removal of minor " + removedMinor);
           }
@@ -776,7 +792,8 @@ function createNewRound(formObject) {
     for (i=0; i<game.numMinors; i++) {
       cos.push({col: minorCol[i+1], name: "M" + (i+1), limit: minorLimit});
     }
-    for (i=0; i<game.numMajors+1; i++) {
+    // Do not use game.numMajors; NdeM not included for 1822MX
+    for (i=0; i<game.majors.length; i++) {
       cos.push({col: majorsCol + i, name: results.data[1][majorsCol + i], limit: majorLimit});
     }
     
@@ -988,7 +1005,7 @@ function createNewRound(formObject) {
         
         results.log(winner + " won " + concession + " concession for $" + winningBid);
         
-        // If this is FCM, also add the winner as director of M18
+        // 1822MX: If this is FCM, also add the winner as director of M18
         if (concession == "FCM") {
           sold.push("M18");
           // Add minor share count to owner's row
@@ -1081,16 +1098,19 @@ function createNewRound(formObject) {
       results.reminder("Increase the stock value for soldout majors: " + soldoutMajors.join(", "));
     }
     
-    // DETERMINE NEW PLAYER ORDER; take P7 and previous player order into account
+    // DETERMINE NEW PLAYER ORDER
+    // Take previous player order into account 
+    // Also take P7 into account for 1822MX
     var numPlayers = parseInt(results.data[0][1]);
     var ownerP7 = results.data[privateOwnerRow + 7][privateOwnerCol];
+    var multiplierP7 = results.gameName == "1822mx" ? 2 : 1;
     var players = [];
     for (i=0; i<numPlayers; i++) {
       var thisRow = 2 + i;
       var playerName = results.data[2+i][1];
       // In case of tie, retain player order from previous SR
       // To account for this, add a small amount <1 based on previous order
-      var playerCash = (playerName == ownerP7 ? 2 : 1) * results.data[2+i][4] + 0.1*(numPlayers - results.data[2+i][0]);
+      var playerCash = (playerName == ownerP7 ? multiplierP7 : 1) * results.data[2+i][4] + 0.1*(numPlayers - results.data[2+i][0]);
       players.push({name: playerName, cash: playerCash, row: thisRow});
     }
     players.sort(function(a,b) {
@@ -1110,7 +1130,7 @@ function createNewRound(formObject) {
   }
   
   // HOUSEKEEPING FOR ALL ROUNDS
-  // Changes are made only on newly created sheet
+  // These changes are made only on newly created sheet
   
   // Enter name of previous sheet
   results.change(prevSheetRow, prevSheetCol, results.currentName, true);
@@ -1147,6 +1167,16 @@ function createNewRound(formObject) {
     // Clear out loans/misc
     results.change(incomeRow + i, incomeCol + 4, "", true);
     results.change(incomeRow + i, incomeCol + 5, "", true);
+  }
+  
+  // 1822CA: Clear out P8 and P9 income
+  if (results.gameName == "1822ca") {
+    for (i=0; i<game.maxPlayers; i++) {
+      results.change(incomeRow + i, p8Col, "", true);
+      results.change(incomeRow + i, p9Col, "", true);
+    }
+    results.change(miscRow, p8Col, "", true);
+    results.change(miscRow, p9Col, "", true);
   }
   
   // Prompt user with results
