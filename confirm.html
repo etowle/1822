@@ -29,17 +29,17 @@
   google.script.run.withSuccessHandler(populateLog).getQueuedChanges();
   })();
   
-function populateLog(results) {
+function populateLog(queuedChanges) {
   // Summary information
-  var newType = results.newType == "OR" ? "operating round" : "stock round";
-  var curType = results.currentType == "OR" ? "operating round" : "stock round";
-  var summary = "<i>Creating new " + newType + " named " + results.newName + " from " + curType + " " + results.currentName + ".</i>";
+  var newType = queuedChanges.newType == "OR" ? "operating round" : "stock round";
+  var curType = queuedChanges.currentType == "OR" ? "operating round" : "stock round";
+  var summary = "<i>Creating new " + newType + " named " + queuedChanges.newName + " from " + curType + " " + queuedChanges.currentName + ".</i>";
   var sumLi = '<li class="list-group-item py-1">' + summary + '</li>';
   $('#log').append(sumLi);
   
   // Populate list
-  for (i=0; i<results.log.length; i++) {
-    var li = '<li class="list-group-item py-1">' + results.log[i] + '</li>';
+  for (i=0; i<queuedChanges.log.length; i++) {
+    var li = '<li class="list-group-item py-1">' + queuedChanges.log[i] + '</li>';
     $('#log').append(li);
   }
 }

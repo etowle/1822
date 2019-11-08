@@ -2,14 +2,18 @@
  * @OnlyCurrentDoc
  */
 
-// Compatible with 1822MX v0.1 playtest rules
+// Automatic round generator for  1822MX/1822CA
+
+// Compatible with:
+// 1822MX v0.1 playtest rules
+// 1822CA v1.0 rules
 // https://github.com/etowle/1822mx
 
 // Add a custom menu to the active spreadsheet, including a separator and a sub-menu.
 function onOpen(e) {
   SpreadsheetApp.getUi()
-  .createMenu('1822MX')
-  .addItem('Create new round', 'openNewRoundDialog')
+  .createMenu('New round')
+  .addItem('Create', 'openNewRoundDialog')
   .addToUi();
 }
 
@@ -18,7 +22,7 @@ function openNewRoundDialog() {
   .setWidth(580)
   .setHeight(260)
   SpreadsheetApp.getUi()
-  .showModalDialog(html, '1822MX: Create new round');
+  .showModalDialog(html, 'Create new round');
 }
 
 function validateNewName(str) {
@@ -70,6 +74,7 @@ function detectRound(name) {
 }
 
 function Results() {
+  this.gameName = "";
   this.newName = "";
   this.newType = "";
   this.currentName = "";
@@ -128,14 +133,14 @@ function Results() {
     else {
       // Save data as strings using user properties
       var userProperties = PropertiesService.getUserProperties();
-      var queuedChanges = {"newName": this.newName, "newType": this.newType, "currentName": this.currentName, "currentType": this.currentType, "log": this.logged, "changes": this.changes, "reminders": this.reminders, "lastRow": this.lastRow, "lastCol": this.lastCol};
+      var queuedChanges = {"gameName": this.gameName, "newName": this.newName, "newType": this.newType, "currentName": this.currentName, "currentType": this.currentType, "log": this.logged, "changes": this.changes, "reminders": this.reminders, "lastRow": this.lastRow, "lastCol": this.lastCol};
       userProperties.setProperty("queuedChanges", JSON.stringify(queuedChanges));
       
       if (this.currentType == "SR") {
         // Open confirmation sidebar if this round is an SR
         var html = HtmlService
         .createHtmlOutputFromFile('confirm')
-        .setTitle('1822MX: Round summary');
+        .setTitle(this.gameName.toUpperCase() + ": Round summary");
         SpreadsheetApp.getUi().showSidebar(html);
       }
       else {
@@ -278,30 +283,54 @@ Array.prototype.indexOf2D = function(search,vOrient){
   return [-1, -1];
 }
 
+function getSetup(game) {
+  if (game == "1822mx") {
+    var minPlayers = 3;
+    var maxPlayers = 5;
+    var majors = ["CHP", "FCM", "FCP", "FNM", "IRM", "MC", "MIR", "NdeM"];
+    var numMinors = 24;
+    var numPrivates = 18;
+    var numMajors = majors.length - 1; // exclude NdeM
+    var stockPrices = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100, 110, 120, 135, 150, 165, 180, 200, 220, 245, 270, 300, 330, 360, 400, 450, 500, 550, 600];
+    var permanents = ["2P", "P2", "3/2", "3/2P", "P3/2", "LP", "PL", "P+", "+"];
+  }
+  else if (game == "1822ca") {
+    var minPlayers = 3;
+    var maxPlayers = 7;
+    var majors = ["CNoR", "CP", "GNW", "GT", "GTP", "GWR", "IC", "NTR", "PGE", "QMOO"];
+    var numMinors = 30;
+    var numPrivates = 30;
+    var numMajors = majors.length;
+    var stockPrices = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100, 110, 120, 135, 150, 165, 180, 200, 220, 245, 270, 300, 330, 360, 400, 450, 500, 550, 600, 650, 700];
+    var permanents = ["2P", "P2", "LP", "PL", "P+", "+", "G"];
+  }
+  else {
+    return null;
+  }
+  
+  return { "minPlayers": minPlayers, "maxPlayers": maxPlayers, "majors": majors, "numMinors": numMinors, "numPrivates": numPrivates, "numMajors": numMajors, "stockPrices": stockPrices, "permanents": permanents };
+}
+
 // Check spreadsheet for errors and locate certain rows/columns
 function createNewRound(formObject) {
   var results = new Results();
+  results.gameName = formObject.gameName;
   results.newName = formObject.newName;
   results.newType = formObject.newType;
   results.currentName = formObject.currentName;
   
-  // Player count
-  const MIN_PLAYERS = 3;
-  const MAX_PLAYERS = 5;
-  
-  // Major companies, in order
-  const MAJORS = ["CHP", "FCM", "FCP", "FNM", "IRM", "MC", "MIR", "NdeM"]
-  
-  // Total number in game
-  const NUM_MINORS = 24;
-  const NUM_PRIVATES = 18;
-  const NUM_MAJORS = MAJORS.length - 1; // exclude NdeM
+  // Get game-specific data
+  var game = getSetup(results.gameName);
+  if (!game) { results.error("Error retrieving details for selected game."); }
   
   // Valid names of minors
   const MINORS = (function(){
     var names = [];
-    for (i=1; i<NUM_MINORS+1; i++) {
+    for (i=1; i<game.numMinors+1; i++) {
       names.push("M" + i);
+      if (i < 10) {
+        names.push("M0" + i);
+      }
       names.push(i.toString());
     }
     return names;
@@ -310,7 +339,7 @@ function createNewRound(formObject) {
   // Valid names of privates
   const PRIVATES = (function(){
     var names = [];
-    for (i=1; i<NUM_PRIVATES+1; i++) {
+    for (i=1; i<game.numPrivates+1; i++) {
       names.push("P" + i.toString());
       names.push(i.toString());
     }
@@ -323,7 +352,6 @@ function createNewRound(formObject) {
   const CONCESSIONS_FOR_BIDDING = 3;
   
   // Stock market values
-  const STOCK_PRICES = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100, 110, 120, 135, 150, 165, 180, 200, 220, 245, 270, 300, 330, 360, 400, 450, 500, 550, 600];
   const YELLOW_ZONE_END = 45;
   
   // Train types
@@ -334,8 +362,7 @@ function createNewRound(formObject) {
   
   // Valid names for trains (ordered)
   const TRAINS = ["E", "7", "6", "5", "4", "3", "2", "L"]
-  const PERMANENTS = ["2P", "P2", "3/2", "3/2P", "P3/2", "LP", "PL", "P+", "+"]
-  const ALL_TRAINS = TRAINS.concat(PERMANENTS);
+  const ALL_TRAINS = TRAINS.concat(game.permanents);
   
   // Get active sheet
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(results.currentName);
@@ -350,15 +377,15 @@ function createNewRound(formObject) {
   // Get number of players in cell B1
   // Like the sheet, this check rounds floats to integers
   var numPlayers = Math.round(parseFloat(results.data[0][1]));
-  if (isNaN(numPlayers) || numPlayers < MIN_PLAYERS || numPlayers > MAX_PLAYERS) {
-    results.error("Number of valid players in cell B1 must be an integer between " + MIN_PLAYERS + " and " + MAX_PLAYERS + ".");
+  if (isNaN(numPlayers) || numPlayers < game.minPlayers || numPlayers > game.maxPlayers) {
+    results.error("Number of valid players in cell B1 must be an integer between " + game.minPlayers + " and " + game.maxPlayers + ".");
   }
   
   // Create map of player names to rows
   var playerIndices = results.data.indexOf2D(["PD", "Player"]);
   if (results.checkIndex(playerIndices[0], "list of players")) { return results.show(); }
   var playerRow = {};
-  for (i=0; i<MAX_PLAYERS; i++) {
+  for (i=0; i<game.maxPlayers; i++) {
     var playerName = results.data[playerIndices[0] + 1 + i][playerIndices[1] + 1];
     if (playerName != "" && playerName != "-") {
       playerRow[playerName] = playerIndices[0] + 1 + i;
@@ -369,7 +396,7 @@ function createNewRound(formObject) {
   var minorIndices = results.data.indexOf2D("Minor Companies (president gets 1 cert for a minor. Enter a 1 for the president)");
   if (results.checkIndex(minorIndices[0], "cells for minor ownership/shares")) { return results.show(); }
   var minorCol = {};
-  for (i=0; i<NUM_MINORS; i++) {
+  for (i=0; i<game.numMinors; i++) {
     minorCol[(i+1).toString()] = minorIndices[1] + i;
     minorCol["M" + (i+1)] = minorIndices[1] + i;
   }
@@ -407,10 +434,10 @@ function createNewRound(formObject) {
   if (results.checkIndex(concessionIndices[0], "cells with concession ownership information")) { return results.show(); }
   
   // Get majors column
-  var majorsIndices = results.data.indexOf2D(["Majors", MAJORS[0]], true);
+  var majorsIndices = results.data.indexOf2D(["Majors", game.majors[0]], true);
   if (results.checkIndex(majorsIndices[0], "cells with major company share information")) { return results.show(); }
   var majorsCol = majorsIndices[1];
-  var ndemCol = majorsCol + NUM_MAJORS;
+  var ndemCol = majorsCol + game.numMajors;
   
   // Get column starting private bids
   var colPrivateBids = results.data[0].indexOf("Privates");
@@ -448,7 +475,7 @@ function createNewRound(formObject) {
   // Extract array of draw order
   var minorDrawRow = minorDrawIndices[0] + 1;
   var minorDrawCol = minorDrawIndices[1] + 1;
-  var minorDraws = results.data.map(function(value) { return value[minorDrawCol]; }).splice(minorDrawRow, NUM_MINORS);
+  var minorDraws = results.data.map(function(value) { return value[minorDrawCol]; }).splice(minorDrawRow, game.numMinors);
   
   // Get row/column for private draw pile box
   var privateDrawIndices = results.data.indexOf2D(["Order", "Private"]);
@@ -456,7 +483,7 @@ function createNewRound(formObject) {
   // Extract array of draw order
   var privateDrawRow = privateDrawIndices[0] + 1;
   var privateDrawCol = privateDrawIndices[1] + 1;
-  var privateDraws = results.data.map(function(value) { return value[privateDrawCol]; }).splice(privateDrawRow, NUM_PRIVATES);
+  var privateDraws = results.data.map(function(value) { return value[privateDrawCol]; }).splice(privateDrawRow, game.numPrivates);
   
   // Get row/column for major concession draw pile box
   var concessionDrawIndices = results.data.indexOf2D(["Order", "Concession"]);
@@ -464,7 +491,7 @@ function createNewRound(formObject) {
   // Extract array of draw order
   var concessionDrawRow = concessionDrawIndices[0] + 2;
   var concessionDrawCol = concessionDrawIndices[1] + 1;
-  var concessionDraws = results.data.map(function(value) { return value[concessionDrawCol]; }).splice(concessionDrawRow, NUM_MAJORS);
+  var concessionDraws = results.data.map(function(value) { return value[concessionDrawCol]; }).splice(concessionDrawRow, game.numMajors);
   
   // Get row/column for end-of-round private ownership
   var privateOwnerIndices = results.data.indexOf2D("End of round");
@@ -513,7 +540,7 @@ function createNewRound(formObject) {
   if (results.currentType == "SR") {
     // RESOLVE MINOR BIDS
     var newMinors = results.data[1].slice(colMinorBids, colMinorBids + MINORS_FOR_BIDDING);
-    var ndemNumTrains = 0;
+    var numExportedTrains = 0;
     var sold = [];
     var removedMinor;
     var lastMinor;
@@ -542,18 +569,17 @@ function createNewRound(formObject) {
       // Were there no bidders?
       if (winner == "-") {
         var noBidders = "No bidders on minor " + minor;
-        ndemNumTrains++;
+        numExportedTrains++;
         if (i == 0) {
           noBidders += "; it is removed";
           removedMinor = minor;
           newMinors.splice(0, 1);
           var removeReminder = "Minor " + removedMinor + " was removed. ";
-          if (phase < 7) {
+          if (phase < 7 && results.gameName == "1822mx") {
             // While NdeM is open, it absorbs removed minor's location
             removeReminder += "Add an NdeM token to its home location on the board";
           }
           else {
-            // NdeM closes in phase 7, but minor is still removed
             removeReminder += "Its home location is now available for other station markers";
           }
           results.reminder(removeReminder);
@@ -607,7 +633,7 @@ function createNewRound(formObject) {
         // Search for last minor in draw pile
         var minorDrawMatch = minorDraws.indexOf(lastMinor);
         if (results.checkIndex(minorDrawMatch, lastMinor + " in minor draw pile")) { return results.show(); }
-        if (minorDrawMatch < NUM_MINORS - 1) {
+        if (minorDrawMatch < game.numMinors - 1) {
           // If last bid minor is not on bottom of draw pile, add the next minor to ongoing list
           lastMinor = minorDraws[minorDrawMatch + 1];
           newMinors.push(lastMinor);
@@ -627,38 +653,43 @@ function createNewRound(formObject) {
     }
     results.log(minorOrder);
     
-    // NdeM train acquisition
+    // Export trains
+    // 1822MX: NdeM train acquisition
     var trainType = phase == 1 ? "L" : "2";
     var remainingL2 = results.data[l2Row][remainingTrainsCol];
     if (phase > 2 && phase < 7) {
-      results.log("NdeM acquires no L/2 trains in phase " + phase);
+      results.log("No L/2 trains exported in phase " + phase);
     }
     else if (remainingL2 < 1) {
-      results.log("No L/2 trains to export to NdeM");
+      results.log("No L/2 trains to export");
     }
     else {
-      // NdeM acquires L/2 trains
-      ndemNumTrains = Math.min(ndemNumTrains, remainingL2);
+      // Export L/2 trains
+      numExportedTrains = Math.min(numExportedTrains, remainingL2);
       
-      // Add trains to NdeM's train row
-      for (i=0; i<ndemNumTrains; i++) {
-        if (results.data[trainsRow][ndemCol].toString().replace(/\s/g, '') == "") {
-          results.change(trainsRow, ndemCol, trainType);
-        }
-        else {
-          results.changeAdd(trainsRow, ndemCol, "," + trainType);
+      if (results.gameName == "1822mx") {
+        // Add trains to NdeM's train row
+        for (i=0; i<numExportedTrains; i++) {
+          if (results.data[trainsRow][ndemCol].toString().replace(/\s/g, '') == "") {
+            results.change(trainsRow, ndemCol, trainType);
+          }
+          else {
+            results.changeAdd(trainsRow, ndemCol, "," + trainType);
+          }
         }
       }
-      var plural = ndemNumTrains == 1 ? "" : "s";
-      results.log("NdeM acquires " + ndemNumTrains + " " + trainType + " train" + plural + " (of " + remainingL2 + " remaining)");
+      var plural = numExportedTrains == 1 ? "" : "s";
+      var exportMsg = "Exported " + numExportedTrains + " " + trainType + " train" + plural + " (of " + remainingL2 + " remaining)"
+      exportMsg += results.gameName == "1822mx" ? " to NdeM" : "";
+      results.log(exportMsg);
       
       // Update "Bought + Exported" trains
-      results.changeAdd(l2Row, usedTrainsCol, ndemNumTrains);
+      results.changeAdd(l2Row, usedTrainsCol, numExportedTrains);
     }
     
-    // Did NdeM remove a minor in bid box 1?
+    // Was a minor removed from bid box 1?
     if (removedMinor && phase < 7) {
-      // NdeM takes next available train
+      // Export an additional train
       for (i=0; i<NUM_TRAIN_TYPES; i++) {
         // Skip index 1 (merged cell for L/2 trains)
         if (i == 1) {
@@ -668,12 +699,17 @@ function createNewRound(formObject) {
         var thisTrainsAvailable = results.data[l2Row + i][availableTrainsCol];
         var thisTrainsBought = results.data[l2Row + i][usedTrainsCol];
         if (thisTrainsAvailable == "unlimited" || thisTrainsAvailable > thisTrainsBought) {
-          // Add acquired train to NdeM
-          results.changeAdd(l2Row + i, usedTrainsCol, 1);
-          thisTrainsBought++;
-          var acquiredType = i < 2 ? trainType : results.data[l2Row + i][trainTypeCol];
-          results.changeAdd(trainsRow, ndemCol, "," + acquiredType);
-          results.log("NdeM acquires " + acquiredType + " train through removal of minor " + removedMinor);
+          if (results.gameName == "1822mx") {
+            // Add acquired train to NdeM
+            results.changeAdd(l2Row + i, usedTrainsCol, 1);
+            thisTrainsBought++;
+            var acquiredType = i < 2 ? trainType : results.data[l2Row + i][trainTypeCol];
+            results.changeAdd(trainsRow, ndemCol, "," + acquiredType);
+            results.log("NdeM acquires " + acquiredType + " train through removal of minor " + removedMinor);
+          }
+          else {
+            results.log("Additional " + acquiredType + " train exported through removal of minor " + removedMinor);
+          }
           
           // Did this trigger a phase change?
           // I.e., this was the first train bought of this type
@@ -681,11 +717,11 @@ function createNewRound(formObject) {
             phase++;
             results.change(phaseRow, 0, phase);
             results.log("Phase " + phase + " begins");
-            results.reminder("NdeM's acquisition of a " + acquiredType + " train by removing " + removedMinor + " triggered phase " + phase);
+            results.reminder("Export of a " + acquiredType + " train by removing " + removedMinor + " triggered phase " + phase);
             if (RUST.hasOwnProperty(phase)) {
               results.reminder(RUST[phase] + " trains rust");
             }
-            if (phase == 7) {
+            if (phase == 7 && results.gameName == "1822mx") {
               results.reminder("NdeM is now closed (phase 7). NdeM operates once more, then is privatized.");
             }
           }
@@ -693,9 +729,11 @@ function createNewRound(formObject) {
         }
       }
       
-      // Minor becomes share in NdeM bank pool
-      results.changeAdd(treasuryRow, ndemCol, 1);
-      results.log("Add minor " + removedMinor + " as share in NdeM treasury");
+      if (results.gameName == "1822mx") {
+        // Minor becomes share in NdeM bank pool
+        results.changeAdd(treasuryRow, ndemCol, 1);
+        results.log("Added minor " + removedMinor + " as share in NdeM treasury");
+      }
     }
     
     // Return: array of invalid trains
@@ -735,10 +773,10 @@ function createNewRound(formObject) {
     
     // Create array of all company columns and names
     var cos = [];
-    for (i=0; i<NUM_MINORS; i++) {
+    for (i=0; i<game.numMinors; i++) {
       cos.push({col: minorCol[i+1], name: "M" + (i+1), limit: minorLimit});
     }
-    for (i=0; i<NUM_MAJORS+1; i++) {
+    for (i=0; i<game.numMajors+1; i++) {
       cos.push({col: majorsCol + i, name: results.data[1][majorsCol + i], limit: majorLimit});
     }
     
@@ -763,7 +801,7 @@ function createNewRound(formObject) {
       // Discard trains to phase limit
       // Only discard non-permanent trains
       var trainArr = thisTrains.trains.trainStringToArray();
-      var canDiscard = trainArr.diff(PERMANENTS);
+      var canDiscard = trainArr.diff(game.permanents);
       var thisPerms = trainArr.diff(TRAINS);
       // Sort trains: L's first, E's last
       canDiscard.sort(function(a,b){
@@ -881,7 +919,7 @@ function createNewRound(formObject) {
         // Search for last private in draw pile
         var privateDrawMatch = privateDraws.indexOf(lastPrivate);
         if (results.checkIndex(privateDrawMatch, lastPrivate + " in private draw pile")) { return results.show(); }
-        if (privateDrawMatch < NUM_PRIVATES - 1) {
+        if (privateDrawMatch < game.numPrivates - 1) {
           // If last bid private is not on bottom of draw pile, add the next private to ongoing list
           lastPrivate = privateDraws[privateDrawMatch + 1];
           newPrivates.push(lastPrivate);
@@ -928,7 +966,7 @@ function createNewRound(formObject) {
       }
       
       // Is this item is the list of valid items?
-      if (!MAJORS.includes(concession.toUpperCase())) {
+      if (!game.majors.includes(concession.toUpperCase())) {
         results.error("Major concession \"" + concession + "\" in bid box " + (i+1) + " not recognized");
         return results.show();
       }
@@ -945,7 +983,7 @@ function createNewRound(formObject) {
         var winningBid = results.data[winningBidRow][colConcessionBids + i];
         
         // Add winner as owner for end of this round
-        var majorNum = MAJORS.indexOf(concession) + 1;
+        var majorNum = game.majors.indexOf(concession) + 1;
         results.change(concessionOwnerRow + majorNum, concessionOwnerCol, winner);
         
         results.log(winner + " won " + concession + " concession for $" + winningBid);
@@ -980,7 +1018,7 @@ function createNewRound(formObject) {
         // Search for last concession in draw pile
         var concessionDrawMatch = concessionDraws.indexOf(lastConcession);
         if (results.checkIndex(concessionDrawMatch, lastConcession + " in concession draw pile")) { return results.show(); }
-        if (concessionDrawMatch < NUM_MAJORS - 1) {
+        if (concessionDrawMatch < game.numMajors - 1) {
           // If last bid private is not on bottom of draw pile, add the next private to ongoing list
           lastConcession = concessionDraws[concessionDrawMatch + 1];
           newConcessions.push(lastConcession);
@@ -1003,20 +1041,20 @@ function createNewRound(formObject) {
     
     // CHECK FOR SOLD-OUT MAJORS
     var soldoutMajors = [];
-    for (i=0; i<NUM_MAJORS; i++) {
+    for (i=0; i<game.numMajors; i++) {
       // Are all shares of this major sold?
       if (results.data[treasuryRow][majorsCol + i] == 0 && results.data[coBankPoolRow][majorsCol + i] == 0) {
         // Increment market value
         var curPrice = results.data[marketRow][majorsCol + i];
-        if (STOCK_PRICES.includes(curPrice)) {
+        if (game.stockPrices.includes(curPrice)) {
           var thisMajor = results.data[1][majorsCol + i];
           soldoutMajors.push(thisMajor);
-          var stockMatch = STOCK_PRICES.indexOf(curPrice);
+          var stockMatch = game.stockPrices.indexOf(curPrice);
           if (stockMatch == -1) {
             results.error("Stock price of $" + curPrice + " for major " + thisMajor + " not valid");
             return results.show();
           }
-          var newPrice = STOCK_PRICES[Math.min(STOCK_PRICES.length - 1, stockMatch + 1)];
+          var newPrice = game.stockPrices[Math.min(game.stockPrices.length - 1, stockMatch + 1)];
           results.change(marketRow, majorsCol + i, newPrice);
           var shareIncrease = "All shares of " + thisMajor + " are sold."
           if (curPrice == newPrice) {
@@ -1082,22 +1120,22 @@ function createNewRound(formObject) {
   
   for (i=0; i<9; i++) {
     // Clear out minor operational data
-    for (j=1; j<NUM_MINORS + 1; j++) {
+    for (j=1; j<game.numMinors + 1; j++) {
       results.change(operateRow + i, minorCol[j.toString()], "", true);
     }
     
     // Clear out major operational data
-    for (j=0; j<NUM_MAJORS + 1; j++) {
+    for (j=0; j<game.numMajors + 1; j++) {
       results.change(operateRow + i, majorsCol + j, "", true);
     }
   }
   
   // Clear out optional LP, 2P, and 3/2 income for majors
-  for (j=0; j<NUM_MAJORS + 1; j++) {
+  for (j=0; j<game.numMajors + 1; j++) {
     results.change(operateRow + 10, majorsCol + j, "", true);
   }
   
-  for (i=0; i<MAX_PLAYERS; i++) {
+  for (i=0; i<game.maxPlayers; i++) {
     // Clear out SR bids
     for (j=0; j<MINORS_FOR_BIDDING + PRIVATES_FOR_BIDDING + CONCESSIONS_FOR_BIDDING + 2; j++) {
       results.change(incomeRow + i, colPrivateBids + j, "", true);
