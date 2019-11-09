@@ -12,8 +12,8 @@
 // Add a custom menu to the active spreadsheet, including a separator and a sub-menu.
 function onOpen(e) {
   SpreadsheetApp.getUi()
-  .createMenu('New round')
-  .addItem('Create', 'openNewRoundDialog')
+  .createMenu('1822')
+  .addItem('Create new round', 'openNewRoundDialog')
   .addToUi();
 }
 
