@@ -214,8 +214,11 @@ function confirmNewRound() {
   
   // Display reminders and summary
   var ui = SpreadsheetApp.getUi();
-  if (queuedChanges.reminders.length > 0 || queuedChanges.summary.length > 0) {
-    ui.alert("Outline for new round", queuedChanges.newName + "\n" + queuedChanges.reminders.join("\n") + "\n\n" + queuedChanges.summary.join("\n"), ui.ButtonSet.OK);
+  outlineMsg = queuedChanges.newName + "\n";
+  outlineMsg += queuedChanges.summary.join("\n");
+  if (queuedChanges.reminders.length > 0) {
+    outlineMsg += "\nDon't forget!\n" + queuedChanges.reminders.map(function(val) { return "- " + val; }).join("\n");
+    ui.alert("Outline for new round", outlineMsg, ui.ButtonSet.OK);
   }
 }
 
@@ -717,6 +720,7 @@ function createNewRound(formObject) {
       var exportMsg = "Exported " + numExportedTrains + " " + trainType + " train" + plural + " (of " + remainingL2 + " remaining)"
       exportMsg += game.name == "1822mx" ? " to NdeM" : "";
       results.log(exportMsg);
+      results.summarize(exportMsg);
       
       // Update "Bought + Exported" trains
       results.changeAdd(l2Row, usedTrainsCol, numExportedTrains);
@@ -725,6 +729,8 @@ function createNewRound(formObject) {
     // Was a minor removed from bid box 1?
     if (removedMinor && phase < 7) {
       // Export an additional train
+      var extraExportMsg = "";
+      var ndemClosedMsg = ""
       for (i=0; i<NUM_TRAIN_TYPES; i++) {
         // Skip index 1 (merged cell for L/2 trains)
         if (i == 1) {
@@ -740,11 +746,12 @@ function createNewRound(formObject) {
           if (game.name == "1822mx") {
             // Add acquired train to NdeM
             results.changeAdd(trainsRow, ndemCol, "," + acquiredType);
-            results.log("NdeM acquires " + acquiredType + " train through removal of minor " + removedMinor);
+            extraExportMsg = "NdeM acquires " + acquiredType + " train through removal of minor " + removedMinor;
           }
           else {
-            results.log("Additional " + acquiredType + " train exported through removal of minor " + removedMinor);
+            extraExportMsg = "Additional " + acquiredType + " train exported through removal of minor " + removedMinor;
           }
+          results.log(extraExportMsg);
           
           // Did this trigger a phase change?
           // I.e., this was the first train bought of this type
@@ -752,17 +759,24 @@ function createNewRound(formObject) {
             phase++;
             results.change(phaseRow, 0, phase);
             results.log("Phase " + phase + " begins");
-            results.reminder("Export of a " + acquiredType + " train by removing " + removedMinor + " triggered phase " + phase);
+            extraExportMsg = "Export of a " + acquiredType + " train by removal of " + removedMinor + " triggered phase " + phase;
             if (RUST.hasOwnProperty(phase)) {
-              results.reminder(RUST[phase] + " trains rust");
+              extraExportMsg += ". " + RUST[phase] + " trains rust";
             }
             if (phase == 7 && game.name == "1822mx") {
-              results.reminder("NdeM is now closed (phase 7). NdeM operates once more, then is privatized.");
+              ndemClosedMsg = "NdeM is now closed (phase 7). NdeM operates once more, then is privatized.";
               ndemPrivatized = true;
             }
           }
           break;
         }
+      }
+      
+      if (extraExportMsg) {
+        results.summarize(extraExportMsg);
+      }
+      if (ndemClosedMsg) {
+        results.summarize(ndemClosedMsg);
       }
       
       if (game.name == "1822mx") {
@@ -1249,7 +1263,7 @@ function createNewRound(formObject) {
       results.summarize(ndemMsg);
     }
     
-     // Determine minor operating order
+    // Determine minor operating order
     // First, create ordering for minors
     // Draw pile order is used as a tiebreaker for minors with the same market value (just a heuristic)
     // Higher in draw pile is more likely to go ahead of a minor later in the draw pile
@@ -1280,9 +1294,6 @@ function createNewRound(formObject) {
       else if (a.sharePrice + a.weight < b.sharePrice + b.weight) { return 1; }
       else { return 0; }
     });
-    for (i=0; i<openMinors.length; i++) {
-      results.summarize(openMinors[i].name + " @" + openMinors[i].sharePrice + " (" + openMinors[i].director + ") - ");
-    }
     
     // Determine major operating order
     openMajors = [];
@@ -1300,6 +1311,14 @@ function createNewRound(formObject) {
       else if (a.sharePrice < b.sharePrice) { return 1; }
       else { return 0; }
     });
+    
+    // Blank line for spacing
+    results.summarize("");
+    
+    // Add open minors/majors to outline
+    for (i=0; i<openMinors.length; i++) {
+      results.summarize(openMinors[i].name + " @" + openMinors[i].sharePrice + " (" + openMinors[i].director + ") - ");
+    }
     for (i=0; i<openMajors.length; i++) {
       results.summarize(openMajors[i].name + " @" + openMajors[i].sharePrice + " (" + openMajors[i].director + ") - ");
     }
