@@ -1134,17 +1134,16 @@ function createNewRound(formObject) {
     
     // DETERMINE NEW PLAYER ORDER
     // Take previous player order into account 
-    // Also take P7 into account for 1822MX
+    // P7 doubles a player's money for determining player order (in both 1822MX and 1822CA)
     var numPlayers = parseInt(results.data[0][1]);
     var ownerP7 = results.data[privateOwnerRow + 7][privateOwnerCol];
-    var multiplierP7 = game.name == "1822mx" ? 2 : 1;
     var players = [];
     for (i=0; i<numPlayers; i++) {
       var thisRow = 2 + i;
       var playerName = results.data[2+i][1];
       // In case of tie, retain player order from previous SR
       // To account for this, add a small amount <1 based on previous order
-      var playerCash = (playerName == ownerP7 ? multiplierP7 : 1) * results.data[2+i][4] + 0.1*(numPlayers - results.data[2+i][0]);
+      var playerCash = (playerName == ownerP7 ? 2 : 1) * results.data[2+i][4] + 0.1*(numPlayers - results.data[2+i][0]);
       players.push({name: playerName, cash: playerCash, row: thisRow});
     }
     players.sort(function(a,b) {
