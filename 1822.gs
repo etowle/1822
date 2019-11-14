@@ -1201,6 +1201,9 @@ function createNewRound(formObject) {
     // Clear out loans/misc
     results.change(incomeRow + i, incomeCol + 4, "", true);
     results.change(incomeRow + i, incomeCol + 5, "", true);
+    if (game.name == "1822ca") {
+      results.change(incomeRow + i, incomeCol + 6, "", true);
+    }
   }
   
   // 1822CA: Clear out P8 and P9 income
