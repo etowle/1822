@@ -1226,9 +1226,11 @@ function createNewRound(formObject) {
       nextOrder.push({"player": player, "order": order});
     }
     nextOrder.sort(function(a,b) { return a.order > b.order ? 1 : a.order < b.order ? -1 : 0; });
+    results.summarize("");
     for (i=0; i<nextOrder.length; i++) {
       results.summarize(nextOrder[i].player + " - ");
     }
+    results.summarize("");
   }
   
   // SUMMARY WHEN CREATING AN OPERATING ROUND
@@ -1267,8 +1269,9 @@ function createNewRound(formObject) {
     
     // Determine minor operating order
     // First, create ordering for minors
-    // Draw pile order is used as a tiebreaker for minors with the same market value (just a heuristic)
-    // Higher in draw pile is more likely to go ahead of a minor later in the draw pile
+    // Use tiebreakers if share price is the same for two minors
+    // First tiebreaker: minors just launched should go after other minors
+    // Second tiebreaker: draw pile order (minors higher in draw pile order should go before those lower)
     openMinors = [];
     for (i=0; i<game.numMinors; i++) {
       // Only consider a minor launched if it has a director and no merger comments
@@ -1286,8 +1289,16 @@ function createNewRound(formObject) {
         
         // Create weight on the interval (0,1) that favors minors higher in the draw pile
         var thisWeight = (game.numMinors - thisMatch - 1) / game.numMinors;
+        
+        // Subtract 1 from the weight if this minors was just launched
+        var thisMinor = results.data[1][minorStartCol + i];
+        if (sold.indexOf(thisMinor) > -1 || sold.indexOf(thisMinor[0] + "0" + thisMinor.substr(1,2)) > -1) {
+          thisWeight = thisWeight - 1;
+        }
+        
+        // Create weight on the interval 
         // Add to array of open minors
-        openMinors.push({"name": results.data[1][minorStartCol + i], "director": results.data[directorRow][minorStartCol + i].trim(), "sharePrice": results.data[marketRow][minorStartCol + i], "weight": thisWeight});
+        openMinors.push({"name": thisMinor, "director": results.data[directorRow][minorStartCol + i].trim(), "sharePrice": results.data[marketRow][minorStartCol + i], "weight": thisWeight});
       }
     }
     // Sort open minors based on the share price and the weight from the draw pile order
@@ -1298,19 +1309,25 @@ function createNewRound(formObject) {
     });
     
     // Determine major operating order
+    // If a major just increased in value due to being sold out, it should go after other majors of the same value
     openMajors = [];
     for (i=0; i<game.numMajors; i++) {
       // Only consider a major launched if it has a director
       if (results.data[directorRow][majorsCol + i].trim() !== "") {
+        var thisMajor = results.data[1][majorsCol + i];
+        
+        // Penalize majors that just increased in share price
+        var thisWeight = soldoutMajors.indexOf(thisMajor) > -1 ? -1 : 0;
+        
         // Add to array of open majors
-        openMajors.push({"name": results.data[1][majorsCol + i], "director": results.data[directorRow][majorsCol + i].trim(), "sharePrice": results.data[marketRow][majorsCol + i]});
+        openMajors.push({"name": thisMajor, "director": results.data[directorRow][majorsCol + i].trim(), "sharePrice": results.data[marketRow][majorsCol + i], "weight": thisWeight});
       }
     }
     // Sort open majors based on share price
     // We do not consider draw pile order, as it has virtually nothing to do with major share price
     openMajors.sort(function(a,b) {
-      if (a.sharePrice > b.sharePrice) { return -1; }
-      else if (a.sharePrice < b.sharePrice) { return 1; }
+      if (a.sharePrice + a.weight > b.sharePrice + b.weight) { return -1; }
+      else if (a.sharePrice + a.weight < b.sharePrice + b.weight) { return 1; }
       else { return 0; }
     });
     
