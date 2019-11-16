@@ -3,8 +3,8 @@
 
 This is an automatic round generator for 1822-style games. The supported games and links to their corresponding Google Sheets documents are below.
 
-* [1822CA (full map)](https://docs.google.com/spreadsheets/d/15jnmCJ9VuseIv2GcbuPA-qvkE2jV9F0pYEVA4xVc-6c/edit?usp=sharing) (based on template by rslecuyer on BGG)
-* [1822MX](https://docs.google.com/spreadsheets/d/1DuOTSOAqH1c4XfLEcM2RXNUfq-yXfz1IhUx4m5SqqnQ/edit?usp=sharing) (based on template by Scott Petersen)
+* [1822CA (full map)](https://docs.google.com/spreadsheets/d/15jnmCJ9VuseIv2GcbuPA-qvkE2jV9F0pYEVA4xVc-6c/edit?usp=sharing) - based on template by rslecuyer on BGG
+* [1822MX](https://docs.google.com/spreadsheets/d/1DuOTSOAqH1c4XfLEcM2RXNUfq-yXfz1IhUx4m5SqqnQ/edit?usp=sharing) - based on template by Scott Petersen
 
 The round generator has already been added to each spreadsheet.
 
@@ -17,12 +17,12 @@ When creating a new operating round from an existing stock round, the script doe
 1. Resolves private bids and assigns the winners as owners
 2. Resolves minor bids, sets the starting value and treasury, and assigns the director
 3. Resolves concession bids and assigns the winners as owners
-4. Updates private, minor, and concession bid boxes with the next set of companies
-5. In phases 1 and 2, trains are exported based on the number of unsold minors. In phases 1-6, an additional train is exported if the minor in bid box 1 is unsold. This can trigger phase changes, which in turn can cause trains to be rusted or discard. The script handles train rusting and discarding.
-6. Adjusts stock prices for sold-out majors
-7. Create a new sheet with all round-specific information cleared out
+4. In phases 1 and 2, trains are exported based on the number of unsold minors. In phases 1-6, an additional train is exported if the minor in bid box 1 is unsold. This can trigger phase changes, which in turn can cause trains to be rusted or discard. The script handles train rusting and discarding.
+5. Increases stock prices for sold-out majors
+6. Creates a new sheet and clears out all round-specific information
+7. Updates private, minor, and concession bid boxes with the next set of companies
 
-Once the round is generated, an outline for the new round is presented. This can be copied into (e.g.) a Google Doc or forum thread to outline the new round for games played via email/post. My group uses [Board18](https://dev2.board18.org/) 
+Once the round is generated, an outline for the new round is presented. This can be copied into (e.g.) a Google Doc or forum thread to outline the new round for games played via email/post. My group uses [Board18](https://dev2.board18.org/) for the map, a Google Sheets document to manage the game, a Google Docs document for the log, and a Google Group for making "moves" and sending out email alerts.
 
 
 ## How do I use it?
@@ -31,11 +31,11 @@ Once the round is generated, an outline for the new round is presented. This can
 
 ![Menu item](/img/menu.png)
 
-2. Complete the dialog for the new round.
+2. Complete the dialog box with information about the round you would like to generate.
 
 ![New round dialog](/img/new_round.png)
 
-3. If the current round is an operating round, you are done! The new tab will be automatically created. If the current round is a stock round, you will first be asked to confirm what the round generator is doing. This is because creating an operating round from a stock round can be tricky.
+3. Click "Create!". If the current round is an operating round, you are done! The new tab will be automatically created. If the current round is a stock round, you will first be asked to confirm what the round generator is doing. This is because creating an operating round from a stock round involves a lot of moving pieces and subtle rules.
 
 ![Confirm new round](/img/sidebar.png)
 
@@ -53,12 +53,12 @@ No, it's not published. You will have to give the script read/write access to th
 The code is visible at Tools->Script editor.
 
 ### "Unable to locate" something?
-There are two primary ways to interact programatically with the spreadsheet. The first method is to use hardcoded range values (e.g., changing "cell A15"). This is great if rows and columns are never deleted from or added to your workbook. The second method is to search for cells based on the contents of other cells (e.g., searching for a cell containing "Trains", then changing the cell directly below it). This method is great if the contents of those indicator cells are never changed.
+There are two primary ways to interact programatically with the spreadsheet. The first method is to use hardcoded range values (e.g., changing "cell A15"). This is great if rows and columns are never deleted from or added to your workbook. The second method is to search for cells based on the contents of other cells (e.g., searching for a cell containing the text "Trains", then changing the cell directly below it). This method is great if the contents of those indicator cells are never changed.
 
-The script uses the second method for finding data in the spreadsheet. I found that players deletej/add rows and columns much more frequently than they edit certain cell contents. *This error means that the script can't find a certain group of cells because the contents of the cell(s) it uses to locate them has changed*. Only non-formulaic player, bidding, market, and operational data should be modified.
+The script uses the second method for finding data in the spreadsheet. I found that players delete/add rows and columns much more frequently than they edit certain cell contents. *This error means that the script can't find a certain group of cells because the contents of the cell(s) it uses to locate them has changed*. Only non-formulaic player, bidding, market, ownership, and operational data should be modified.
+
+### "Invalid trains"? What does that mean?
+A company's trains must be separated by commas. The following are recognized as valid train types for the games in which they are included: E, 7, 6, 5, 4, 3, 2, L, 2P, P2, 3/2, 3/2P, P3/2, LP, PL, P+, +, and G. If any other trains are listed in a company's train cell (or trains from this list that do not belong in a particular game), the script will not run until these train cells are fixed. This is important for properly rusting and discarding trains during phase changes triggered by train exports at the end of a stock round.
 
 ### I found a bug!
 I am relatively new to 18xx games, so it's very likely there are a few bugs. This is also my first project using JavaScript/Google Apps Script. Please open an issue for problems that you find. It would be very helpful if you can provide a link to an example sheet for which the round generator behaves incorrectly.
-
-### "Invalid trains"? What does that mean?
-A company's trains must be separated by commas. The following are recognized as valid train types for the games in which they are included: E, 7, 6, 5, 4, 3, 2, L, 2P, P2, 3/2, 3/2P, P3/2, LP, PL, P+, +, and G. If any other trains are listed in a company's train cell (or trains from this list that do not belong in a particular game), the script will not run until these trains are fixed. This is important for properly rusting and discarding trains during phase changes.
