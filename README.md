@@ -6,7 +6,7 @@ This is an automatic round generator for 1822-style games. The supported games a
 * [1822CA (full map)](https://docs.google.com/spreadsheets/d/15jnmCJ9VuseIv2GcbuPA-qvkE2jV9F0pYEVA4xVc-6c/edit?usp=sharing) - based on template by rslecuyer on BGG
 * [1822MX](https://docs.google.com/spreadsheets/d/1DuOTSOAqH1c4XfLEcM2RXNUfq-yXfz1IhUx4m5SqqnQ/edit?usp=sharing) - based on template by Scott Petersen
 
-The round generator has already been added to each spreadsheet.
+The round generator has already been added to each spreadsheet. The spreadsheets linked above are read-only; to use them, save a copy to your own Google Drive with File->"Make a copy" and share the sheet with the other players in your game.
 
 ## What does it do?
 
@@ -27,7 +27,7 @@ Once the round is generated, an outline for the new round is presented. This can
 
 ## How do I use it?
 
-1. Navigate to 1822->"Create new round" from the menu.
+1. Navigate to 1822->"Create new round" from the menu. The first time you run this, you will have to give the script permission to view and modify the sheet, as well as display content in sidebars and dialogs (see the FAQs). The script does *not* have permission to access any other information related to your Google Drive folder or account.
 
 ![Menu item](/img/menu.png)
 
@@ -35,7 +35,7 @@ Once the round is generated, an outline for the new round is presented. This can
 
 ![New round dialog](/img/new_round.png)
 
-3. Click "Create!". If the current round is an operating round, you are done! The new tab will be automatically created. If the current round is a stock round, you will first be asked to confirm what the round generator is doing. This is because creating an operating round from a stock round involves a lot of moving pieces and subtle rules.
+3. Click "Create!". If the current round is an operating round, you are done! The new tab will be automatically created. If the current round is a stock round, you will first be asked to confirm what the round generator is doing. This is because creating an operating round from a stock round can be tricky and error-prone (even for the human players!).
 
 ![Confirm new round](/img/sidebar.png)
 
@@ -43,7 +43,7 @@ Once the round is generated, an outline for the new round is presented. This can
 
 ![New round outline](/img/outline.png)
 
-Please do not edit cell headers, as their contents help the script locate where certain cells are located on the sheet.
+Please do not edit cells that serve as headers for other cells (e.g., cells with text like "Trains", "Previous Sheet", etc.). Their contents help the script locate where everything is in the sheet.
 
 ## FAQs
 
