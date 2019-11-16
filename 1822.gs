@@ -1238,6 +1238,9 @@ function createNewRound(formObject) {
     // Construct NdeM operation message for 1822MX
     var ndemMsg = "";
     if (game.name == "1822mx" && phase < 7 || ndemPrivatized) {
+      var ndemPrice = results.data[marketRow][ndemCol];
+      ndemMsg = "NdeM @" + ndemPrice + " - ";
+      
       // Look for players with NdeM shares
       ndemOperators = [];
       for (i=0; i<numPlayers; i++) {
@@ -1251,13 +1254,12 @@ function createNewRound(formObject) {
         ndemOperators.sort(function(a,b) {
           return a.order > b.order ? 1 : a.order < b.order ? -1 : 0;
         });
-        ndemMsg += "NdeM"
         for (i=0; i<ndemOperators.length; i++) {
-          ndemMsg += "\n    " + ndemOperators[i].player;
+          ndemMsg += "\n    " + ndemOperators[i].player + " - ";
         }
       }
       else {
-        ndemMsg += "NdeM - no operators";
+        ndemMsg += "no operators";
       }
     }
     
@@ -1333,7 +1335,6 @@ function createNewRound(formObject) {
     
     // Blank line for spacing
     results.summarize("");
-    
     // Add open minors/majors to outline
     for (i=0; i<openMinors.length; i++) {
       results.summarize(openMinors[i].name + " @" + openMinors[i].sharePrice + " (" + openMinors[i].director + ") - ");
@@ -1342,14 +1343,14 @@ function createNewRound(formObject) {
       results.summarize(openMajors[i].name + " @" + openMajors[i].sharePrice + " (" + openMajors[i].director + ") - ");
     }
     
-    if (openMinors.length + openMajors.length > 0) {
-      results.summarize("\nOrder for companies with same share price may not be correct.");
-    }
-    
     // If NdeM was not just privatized, it operates last
     if (game.name == "1822mx" && phase < 7 || !ndemPrivatized) {
       results.summarize(ndemMsg);
     }    
+    
+    if (openMinors.length + openMajors.length > 0) {
+      results.summarize("\nOrder for companies with same share price may not be correct.\n");
+    }
   }
 
   // Prompt user with results
