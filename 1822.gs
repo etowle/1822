@@ -2,11 +2,11 @@
  * @OnlyCurrentDoc
  */
 
-// Automatic round generator for 1822MX/1822CA
+// Automatic round generator for 1822-style games
 
 // Compatible with:
-// 1822MX v0.1 playtest rules
 // 1822CA v1.0 rules
+// 1822MX v0.1 playtest rules
 // https://github.com/etowle/1822
 
 // Add a custom menu to the active spreadsheet, including a separator and a sub-menu.
