@@ -1293,9 +1293,12 @@ function createNewRound(formObject) {
         var thisWeight = (game.numMinors - thisMatch - 1) / game.numMinors;
         
         // Subtract 1 from the weight if this minors was just launched
-        var thisMinor = results.data[1][minorStartCol + i];
-        if (sold.indexOf(thisMinor) > -1 || sold.indexOf(thisMinor[0] + "0" + thisMinor.substr(1,2)) > -1) {
-          thisWeight = thisWeight - 1;
+        // Only applies if current round is an SR
+        if (results.currentType == "SR") {
+          var thisMinor = results.data[1][minorStartCol + i];
+          if (sold.indexOf(thisMinor) > -1 || sold.indexOf(thisMinor[0] + "0" + thisMinor.substr(1,2)) > -1) {
+            thisWeight = thisWeight - 1;
+          }
         }
         
         // Create weight on the interval 
@@ -1319,7 +1322,10 @@ function createNewRound(formObject) {
         var thisMajor = results.data[1][majorsCol + i];
         
         // Penalize majors that just increased in share price
-        var thisWeight = soldoutMajors.indexOf(thisMajor) > -1 ? -1 : 0;
+        // Only applies if current round is an SR
+        if (results.currentType == "SR") {
+          var thisWeight = soldoutMajors.indexOf(thisMajor) > -1 ? -1 : 0;
+        }
         
         // Add to array of open majors
         openMajors.push({"name": thisMajor, "director": results.data[directorRow][majorsCol + i].trim(), "sharePrice": results.data[marketRow][majorsCol + i], "weight": thisWeight});
