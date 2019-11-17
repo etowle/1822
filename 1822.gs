@@ -1288,6 +1288,7 @@ function createNewRound(formObject) {
           }
         }
         if (thisMatch == -1) { results.error("Error finding minor M" + (i+1) + " in minor draw pile."); return results.show(); }
+        var thisMinor = results.data[1][minorStartCol + i];
         
         // Create weight on the interval (0,1) that favors minors higher in the draw pile
         var thisWeight = (game.numMinors - thisMatch - 1) / game.numMinors;
@@ -1295,7 +1296,6 @@ function createNewRound(formObject) {
         // Subtract 1 from the weight if this minors was just launched
         // Only applies if current round is an SR
         if (results.currentType == "SR") {
-          var thisMinor = results.data[1][minorStartCol + i];
           if (sold.indexOf(thisMinor) > -1 || sold.indexOf(thisMinor[0] + "0" + thisMinor.substr(1,2)) > -1) {
             thisWeight = thisWeight - 1;
           }
