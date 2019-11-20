@@ -6,7 +6,7 @@ This is an automatic round generator for 1822-style games. The supported games a
 * [1822CA (full map)](https://docs.google.com/spreadsheets/d/15jnmCJ9VuseIv2GcbuPA-qvkE2jV9F0pYEVA4xVc-6c/edit?usp=sharing) - based on template by rslecuyer on BGG
 * [1822MX](https://docs.google.com/spreadsheets/d/1DuOTSOAqH1c4XfLEcM2RXNUfq-yXfz1IhUx4m5SqqnQ/edit?usp=sharing) - based on template by Scott Petersen
 
-The round generator has already been added to each spreadsheet. The spreadsheets linked above are read-only; to use them, save a copy to your own Google Drive with File->"Make a copy" and share the sheet with the other players in your game.
+The round generator has already been added to each spreadsheet. The spreadsheets linked above are read-only; to use them, save a copy to your own Google Drive with File->"Make a copy" and share the sheet with the other players in your game. The script only works on a desktop computer.
 
 ## What does it do?
 
@@ -62,3 +62,7 @@ A company's trains must be separated by commas. The following are recognized as 
 
 ### I found a bug!
 I am relatively new to 18xx games, so it's very likely there are a few bugs. This is also my first project using JavaScript/Google Apps Script. Please open an issue for problems that you find. It would be very helpful if you can provide a link to an example sheet for which the round generator behaves incorrectly.
+
+### Does this work on mobile?
+
+No. Unfortunately, the user-interface environment invoked by the script is not supported on Google Sheets mobile apps.
