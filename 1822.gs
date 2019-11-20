@@ -82,16 +82,18 @@ function Results() {
   this.data = [];
   this.changes = [];
   this.logged = [];
-  this.reminders = [];
   this.summary = [];
+  this.outlines = [];
+  this.reminders = [];
   this.errors = [];
   this.lastRow = 0;
   this.lastCol = 0;
   
   this.log = function(val) { this.logged.push(val); }
+  this.summarize = function(val) { this.summary.push(val); }
+  this.outline = function(val) { this.outlines.push(val); }
   this.reminder = function(val) { this.reminders.push(val); }
   this.error = function(val) { this.errors.push(val); }
-  this.summarize = function(val) {this.summary.push(val); }
   
   // Change a data value
   this.change = function(i, j, val, delay) {
@@ -135,7 +137,7 @@ function Results() {
     else {
       // Save data as strings using user properties
       var userProperties = PropertiesService.getUserProperties();
-      var queuedChanges = {"gameName": this.gameName, "newName": this.newName, "newType": this.newType, "currentName": this.currentName, "currentType": this.currentType, "log": this.logged, "changes": this.changes, "reminders": this.reminders, "summary": this.summary, "lastRow": this.lastRow, "lastCol": this.lastCol};
+      var queuedChanges = {"gameName": this.gameName, "newName": this.newName, "newType": this.newType, "currentName": this.currentName, "currentType": this.currentType, "log": this.logged, "changes": this.changes, "summary": this.summary, "outlines": this.outlines, "reminders": this.reminders, "lastRow": this.lastRow, "lastCol": this.lastCol};
       userProperties.setProperty("queuedChanges", JSON.stringify(queuedChanges));
       
       if (this.currentType == "SR") {
@@ -212,14 +214,25 @@ function confirmNewRound() {
   newSheet.getRange(1, 1, queuedChanges.lastRow, queuedChanges.lastCol).setValues(data);
   SpreadsheetApp.flush();
   
-  // Display reminders and summary
+  // Display outline. Stucture is:
+  // Name of new round
+  //   Summary
+  //   
+  //   Order outline
+  //   
+  //   Reminders
   var ui = SpreadsheetApp.getUi();
-  outlineMsg = queuedChanges.newName + "\n";
-  outlineMsg += queuedChanges.summary.join("\n");
-  if (queuedChanges.reminders.length > 0) {
-    outlineMsg += "\nDon't forget!\n" + queuedChanges.reminders.map(function(val) { return "- " + val; }).join("\n");
-    ui.alert("Outline for new round", outlineMsg, ui.ButtonSet.OK);
+  outlineMsg = queuedChanges.newName;
+  if (queuedChanges.summary.length > 0) {
+    outlineMsg += "\n" + queuedChanges.summary.join("\n");
   }
+  if (queuedChanges.outlines.length > 0) {
+    outlineMsg += "\n\n" + queuedChanges.outlines.join("\n");
+  }
+  if (queuedChanges.reminders.length > 0) {
+    outlineMsg += "\n\nDon't forget!\n" + queuedChanges.reminders.map(function(val) { return "- " + val; }).join("\n");
+  }
+  ui.alert("Outline for " + queuedChanges.newName, outlineMsg, ui.ButtonSet.OK);
 }
 
 // Find difference between two arrays
@@ -1129,7 +1142,7 @@ function createNewRound(formObject) {
       }
     }
     if (soldoutMajors.length > 0) {
-      results.reminder("Increase the stock value for soldout majors: " + soldoutMajors.join(", "));
+      results.reminder("Increase the stock value on the board for soldout majors: " + soldoutMajors.join(", "));
     }
     
     // DETERMINE NEW PLAYER ORDER
@@ -1226,11 +1239,9 @@ function createNewRound(formObject) {
       nextOrder.push({"player": player, "order": order});
     }
     nextOrder.sort(function(a,b) { return a.order > b.order ? 1 : a.order < b.order ? -1 : 0; });
-    results.summarize("");
     for (i=0; i<nextOrder.length; i++) {
-      results.summarize(nextOrder[i].player + " - ");
+      results.outline(nextOrder[i].player + " - ");
     }
-    results.summarize("");
   }
   
   // SUMMARY WHEN CREATING AN OPERATING ROUND
@@ -1266,7 +1277,7 @@ function createNewRound(formObject) {
     // If NdeM was just privatized, this is be the first step that happens
     // Otherwise, this step happens last
     if (ndemPrivatized) {
-      results.summarize(ndemMsg);
+      results.outline(ndemMsg);
     }
     
     // Determine minor operating order
@@ -1339,23 +1350,21 @@ function createNewRound(formObject) {
       else { return 0; }
     });
     
-    // Blank line for spacing
-    results.summarize("");
     // Add open minors/majors to outline
     for (i=0; i<openMinors.length; i++) {
-      results.summarize(openMinors[i].name + " @" + openMinors[i].sharePrice + " (" + openMinors[i].director + ") - ");
+      results.outline(openMinors[i].name + " @" + openMinors[i].sharePrice + " (" + openMinors[i].director + ") - ");
     }
     for (i=0; i<openMajors.length; i++) {
-      results.summarize(openMajors[i].name + " @" + openMajors[i].sharePrice + " (" + openMajors[i].director + ") - ");
+      results.outline(openMajors[i].name + " @" + openMajors[i].sharePrice + " (" + openMajors[i].director + ") - ");
     }
     
     // If NdeM was not just privatized, it operates last
     if (game.name == "1822mx" && phase < 7 || !ndemPrivatized) {
-      results.summarize(ndemMsg);
+      results.outline(ndemMsg);
     }    
     
     if (openMinors.length + openMajors.length > 0) {
-      results.summarize("\nOrder for companies with same share price may not be correct.\n");
+      results.outline("Order for companies with same share price may not be correct.");
     }
   }
 
