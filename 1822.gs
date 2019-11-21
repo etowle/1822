@@ -179,8 +179,8 @@ function confirmNewRound() {
   data = data.map(function(row, i) {
     return row.map(function(val, j) {
       var formula = formulas[i][j];
-      // Current version of spreadsheet has issue with #REF! errors in cells for winning bidders (among other places)
-      return (formula ? formula.replace(/,#REF!/g, "") : val);
+      // If a formula exists, return it. Otherwise, return the cell value
+      return (formula ? formula : val);
     });
   });
   
