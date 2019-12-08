@@ -1345,8 +1345,9 @@ function createNewRound(formObject) {
         
         // Penalize majors that just increased in share price
         // Only applies if current round is an SR
+        var thisWeight = 0;
         if (results.currentType == "SR") {
-          var thisWeight = soldoutMajors.indexOf(thisMajor) > -1 ? -1 : 0;
+          thisWeight = soldoutMajors.indexOf(thisMajor) > -1 ? -1 : 0;
         }
         
         // Add to array of open majors
