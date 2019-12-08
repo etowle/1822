@@ -631,15 +631,17 @@ function createNewRound(formObject) {
           noBidders += "; it is removed";
           removedMinor = minor;
           newMinors.splice(0, 1);
-          var removeReminder = "Minor " + removedMinor + " was removed. ";
+          var removeSummary = "Minor " + removedMinor + " was removed. ";
           if (phase < 7 && game.name == "1822mx") {
             // While NdeM is open, it absorbs removed minor's location
-            removeReminder += "Add an NdeM token to its home location on the board";
+            removeSummary += "NdeM token placed on its home location on the board";
+            var removeReminder = "Add an NdeM token to minor " + removedMinor + "'s home location";
+            results.reminder(removeReminder);
           }
           else {
-            removeReminder += "Its home location is now available for other station markers";
+            removeSummary += "Its home location is now available for other station markers";
           }
-          results.reminder(removeReminder);
+          results.summarize(removeSummary);
         }
         else {
           minorsLeft = true;
@@ -1148,6 +1150,7 @@ function createNewRound(formObject) {
       }
     }
     if (soldoutMajors.length > 0) {
+      results.summarize("Soldout majors increased in stock value: " + soldoutMajors.join(", "));
       results.reminder("Increase the stock value on the board for soldout majors: " + soldoutMajors.join(", "));
     }
     
