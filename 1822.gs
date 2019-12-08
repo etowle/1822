@@ -576,12 +576,18 @@ function createNewRound(formObject) {
   var operateRow = operateIndices[0];
   var miscRow = operateRow + 7;
   
-  // Get column for P8/P9 (1822CA)
+  // 1822CA-specific
   if (game.name == "1822ca") {
+    // Get column for P8/P9 (1822CA)
     var incomePrivateIndices = results.data.indexOf2D(["P8", "P9"]);
     if (results.checkIndex(incomePrivateIndices[0], "cells for P8 and P9 income")) { return results.show(); }
     var p8Col = incomePrivateIndices[1];
     var p9Col = p8Col + 1;
+    
+    // Get tax haven row
+    var taxIndices = results.data.indexOf2D(["P11", "Tax"]);
+    if (results.checkIndex(taxIndices[0], "row for tax haven private P11")) { return results.show(); }
+    var taxRow = taxIndices[0];
   }
   
   // Whether or not NdeM was privatized at the end of a stock round
@@ -1219,14 +1225,19 @@ function createNewRound(formObject) {
     }
   }
   
-  // 1822CA: Clear out P8 and P9 income
+  // 1822CA
   if (game.name == "1822ca") {
+    // Clear out P8 and P9 income
     for (i=0; i<game.maxPlayers; i++) {
       results.change(incomeRow + i, p8Col, "", true);
       results.change(incomeRow + i, p9Col, "", true);
     }
     results.change(miscRow, p8Col, "", true);
     results.change(miscRow, p9Col, "", true);
+    
+    // Clear out tax row spending
+    results.change(taxRow, incomeCol, "", true);
+    results.change(taxRow, incomeCol + 6, "", true);
   }
   
   // SUMMARY WHEN CREATING A STOCK ROUND
