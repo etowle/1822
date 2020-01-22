@@ -9,6 +9,23 @@
 // 1822MX v0.1 playtest rules
 // https://github.com/etowle/1822
 
+// Wrapper around createNewRound() for error-catching
+function createNewRoundWrapper(formObject) {
+  try {
+    return createNewRound(formObject);
+  }
+  catch(err) {
+    var ui = SpreadsheetApp.getUi();
+    var errMsg = "Encountered the following error during script execution:\n\n";
+    errMsg += err;
+    errMsg += "\n";
+    errMsg += err["stack"];
+    errMsg += "\nPlease open an issue at https://github.com/etowle/1822. Please provide a link to a copy of the sheet that caused the error.";
+    ui.alert("Error!", errMsg, ui.ButtonSet.OK);
+  }
+}
+
+// Create new OR/SR
 function createNewRound(formObject) {
   var results = new Results();
   results.gameName = formObject.gameName;
@@ -402,7 +419,7 @@ function createNewRound(formObject) {
         }
       }
       var plural = numExportedTrains == 1 ? "" : "s";
-      var exportMsg = "Exported " + numExportedTrains + " " + trainType + " train" + plural + " (of " + remainingL2 + " remaining)"
+      var exportMsg = "Exported " + numExportedTrains + " " + trainType + "-train" + plural + " (of " + remainingL2 + " remaining)"
       exportMsg += game.name == "1822mx" ? " to NdeM" : "";
       results.log(exportMsg);
       results.summarize(exportMsg);
@@ -428,17 +445,17 @@ function createNewRound(formObject) {
           thisTrainsBought++;
           var acquiredType = i < 2 ? trainType : results.data[l2Row + i][trainTypeCol];
           // The next train listed may be "7 or E" rather than "7"
-          if (acquiredType.indexOf("7") > -1) {
+          if (acquiredType.toString().indexOf("7") > -1) {
             acquiredType = "7";
           }
           results.changeAdd(l2Row + i, usedTrainsCol, 1);
           if (game.name == "1822mx") {
             // Add acquired train to NdeM
             results.changeAdd(trainsRow, ndemCol, "," + acquiredType);
-            extraExportMsg = "NdeM acquires " + acquiredType + " train through removal of minor " + removedMinor;
+            extraExportMsg = "NdeM acquires " + acquiredType + "-train through removal of minor " + removedMinor;
           }
           else {
-            extraExportMsg = "Additional " + acquiredType + " train exported through removal of minor " + removedMinor;
+            extraExportMsg = "Additional " + acquiredType + "-train exported through removal of minor " + removedMinor;
           }
           results.log(extraExportMsg);
           
@@ -448,9 +465,9 @@ function createNewRound(formObject) {
             phase++;
             results.change(phaseRow, 0, phase);
             var phaseChange = "Phase " + phase + " begins";
-            extraExportMsg = "Export of a " + acquiredType + " train by removal of " + removedMinor + " triggered phase " + phase;
+            extraExportMsg = "Export of a " + acquiredType + "-train by removal of " + removedMinor + " triggered phase " + phase;
             if (RUST.hasOwnProperty(phase)) {
-              extraExportMsg += ". " + RUST[phase] + " trains rust";
+              extraExportMsg += ". " + RUST[phase] + "-trains rust";
             }
             if (phase == 7 && game.name == "1822mx") {
               ndemClosedMsg = "NdeM is now closed (phase 7). NdeM operates once more, then is privatized.";
@@ -1146,5 +1163,5 @@ function testCreateNewRound() {
   var newType = "OR";
   var currentName = "test-sr";
   var fo = { "gameName": gameName, "newName": newName, "newType": newType, "currentName": currentName };
-  createNewRound(fo);
+  createNewRoundWrapper(fo);
 }

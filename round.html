@@ -40,7 +40,7 @@
       
       function submitForm() {
         var formObject = document.getElementById('roundForm');
-        google.script.run.withSuccessHandler(closeDialog).createNewRound(formObject);
+        google.script.run.withSuccessHandler(closeDialog).createNewRoundWrapper(formObject);
       }
       
 
