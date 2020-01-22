@@ -428,6 +428,10 @@ function createNewRound(formObject) {
         if (thisTrainsAvailable == "unlimited" || thisTrainsAvailable > thisTrainsBought) {
           thisTrainsBought++;
           var acquiredType = i < 2 ? trainType : results.data[l2Row + i][trainTypeCol];
+          // The next train listed may be "7 or E" rather than "7"
+          if (acquiredType.indexOf("7") > -1) {
+            acquiredType = "7";
+          }
           results.changeAdd(l2Row + i, usedTrainsCol, 1);
           if (game.name == "1822mx") {
             // Add acquired train to NdeM
