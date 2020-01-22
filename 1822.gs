@@ -220,7 +220,7 @@ function createNewRound(formObject) {
   if (results.checkIndex(phaseRow, "current phase")) { return results.show(); }
   phaseRow++;
   var phase = results.data[phaseRow][0];
-  var startPhase = phase
+  var startPhase = phase;
   results.log("Currently in phase " + phase);
   
   // Get row/column for previous sheet
