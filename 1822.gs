@@ -9,7 +9,6 @@
 // 1822MX v0.1 playtest rules
 // https://github.com/etowle/1822
 
-// Check spreadsheet for errors and locate certain rows/columns
 function createNewRound(formObject) {
   var results = new Results();
   results.gameName = formObject.gameName;
@@ -448,7 +447,7 @@ function createNewRound(formObject) {
           if (thisTrainsBought == 1) {
             phase++;
             results.change(phaseRow, 0, phase);
-            results.log("Phase " + phase + " begins");
+            var phaseChange = "Phase " + phase + " begins";
             extraExportMsg = "Export of a " + acquiredType + " train by removal of " + removedMinor + " triggered phase " + phase;
             if (RUST.hasOwnProperty(phase)) {
               extraExportMsg += ". " + RUST[phase] + " trains rust";
@@ -456,7 +455,9 @@ function createNewRound(formObject) {
             if (phase == 7 && game.name == "1822mx") {
               ndemClosedMsg = "NdeM is now closed (phase 7). NdeM operates once more, then is privatized.";
               ndemPrivatized = true;
+              phaseChange += "; NdeM privatizes after one more operation";
             }
+            results.log(phaseChange);
           }
           break;
         }
@@ -966,6 +967,7 @@ function createNewRound(formObject) {
     // If NdeM was just privatized, this is be the first step that happens
     // Otherwise, this step happens last
     if (ndemPrivatized) {
+      ndemMsg += "\nNdeM now privatized";
       results.outline(ndemMsg);
     }
     
