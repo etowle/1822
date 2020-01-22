@@ -220,6 +220,7 @@ function createNewRound(formObject) {
   if (results.checkIndex(phaseRow, "current phase")) { return results.show(); }
   phaseRow++;
   var phase = results.data[phaseRow][0];
+  var startPhase = phase
   results.log("Currently in phase " + phase);
   
   // Get row/column for previous sheet
@@ -676,104 +677,110 @@ function createNewRound(formObject) {
     results.log(privateOrder);
     
     // RESOLVE MAJOR CONCESSION BIDS
-    var newConcessions = results.data[1].slice(colConcessionBids, colConcessionBids + CONCESSIONS_FOR_BIDDING);
-    var soldConcessions = [];
-    var lastConcession;
-    var concessionsLeft = false;
-    for (i=0; i<CONCESSIONS_FOR_BIDDING; i++) {
-      var concessionFull = results.data[1][colConcessionBids + i];
-      var winner = results.data[winnerRow][colConcessionBids + i];
-      
-      // Is this FCM?
-      var concession = concessionFull.toString().toUpperCase();
-      if (concession.indexOf("FCM") > -1) {
-        concession = "FCM";
-      }
-      
-      // Is this item blank?
-      if (concession.isBlank()) {
-        var ignore = "No concession in bid box " + (i+1);
-        if (i < CONCESSIONS_FOR_BIDDING - 1) {
-          ignore += ". Ignoring remaining bid boxes";
+    // Concessions are removed in phase 5
+    if (startPhase < 5) {
+      var newConcessions = results.data[1].slice(colConcessionBids, colConcessionBids + CONCESSIONS_FOR_BIDDING);
+      var soldConcessions = [];
+      var lastConcession;
+      var concessionsLeft = false;
+      for (i=0; i<CONCESSIONS_FOR_BIDDING; i++) {
+        var concessionFull = results.data[1][colConcessionBids + i];
+        var winner = results.data[winnerRow][colConcessionBids + i];
+        
+        // Is this FCM?
+        var concession = concessionFull.toString().toUpperCase();
+        if (concession.indexOf("FCM") > -1) {
+          concession = "FCM";
         }
-        results.log(ignore);
-        newConcessions.splice(i, CONCESSIONS_FOR_BIDDING - i);
-        break;
-      }
-      
-      // Is this item is the list of valid items?
-      if (!game.majors.includes(concession.toUpperCase())) {
-        results.error("Major concession \"" + concession + "\" in bid box " + (i+1) + " not recognized");
-        return results.show();
-      }
-      lastConcession = concession;
-      
-      // Were there no bidders?
-      if (winner == "-") {
-        results.log("No bidders on " + concession + " concession");
-        concessionsLeft = true;
-      }
-      else {
-        // Concession was sold
-        newConcessions.splice(newConcessions.indexOf(concessionFull), 1);
-        var winningBid = results.data[winningBidRow][colConcessionBids + i];
         
-        // Add winner as owner for end of this round
-        var majorNum = game.majors.indexOf(concession) + 1;
-        results.change(concessionOwnerRow + majorNum, concessionOwnerCol, winner);
+        // Is this item blank?
+        if (concession.isBlank()) {
+          var ignore = "No concession in bid box " + (i+1);
+          if (i < CONCESSIONS_FOR_BIDDING - 1) {
+            ignore += ". Ignoring remaining bid boxes";
+          }
+          results.log(ignore);
+          newConcessions.splice(i, CONCESSIONS_FOR_BIDDING - i);
+          break;
+        }
         
-        results.log(winner + " won " + concession + " concession for $" + winningBid);
+        // Is this item is the list of valid items?
+        if (!game.majors.includes(concession.toUpperCase())) {
+          results.error("Major concession \"" + concession + "\" in bid box " + (i+1) + " not recognized");
+          return results.show();
+        }
+        lastConcession = concession;
         
-        // 1822MX: If this is FCM, also add the winner as director of M18
-        if (concession == "FCM") {
-          sold.push("M18");
-          // Add minor share count to owner's row
-          results.change(playerRow[winner], minorCol["M18"], 1);
+        // Were there no bidders?
+        if (winner == "-") {
+          results.log("No bidders on " + concession + " concession");
+          concessionsLeft = true;
+        }
+        else {
+          // Concession was sold
+          newConcessions.splice(newConcessions.indexOf(concessionFull), 1);
+          var winningBid = results.data[winningBidRow][colConcessionBids + i];
           
-          // Add player as director
-          results.change(directorRow, minorCol["M18"], winner);
+          // Add winner as owner for end of this round
+          var majorNum = game.majors.indexOf(concession) + 1;
+          results.change(concessionOwnerRow + majorNum, concessionOwnerCol, winner);
           
-          // Starting price is always $50, starting treasury is always $100
-          results.change(marketRow, minorCol["M18"], 50);
-          results.change(miscRow, minorCol["M18"], 100);
+          results.log(winner + " won " + concession + " concession for $" + winningBid);
           
-          results.log(winner + " is director of M18 as part of winning FCM concession. M18 valued at $50 with $100 in treasury");
+          // 1822MX: If this is FCM, also add the winner as director of M18
+          if (concession == "FCM") {
+            sold.push("M18");
+            // Add minor share count to owner's row
+            results.change(playerRow[winner], minorCol["M18"], 1);
+            
+            // Add player as director
+            results.change(directorRow, minorCol["M18"], winner);
+            
+            // Starting price is always $50, starting treasury is always $100
+            results.change(marketRow, minorCol["M18"], 50);
+            results.change(miscRow, minorCol["M18"], 100);
+            
+            results.log(winner + " is director of M18 as part of winning FCM concession. M18 valued at $50 with $100 in treasury");
+          }
         }
       }
+    
+      // Determine concessions to place in new bid boxes
+      var concessionOrder = "All concessions have sold";
+      if (lastConcession) {
+        while (newConcessions.length < CONCESSIONS_FOR_BIDDING) {
+          lastConcession = lastConcession.toString().toUpperCase();
+          
+          // Search for last concession in draw pile
+          var concessionDrawMatch = concessionDraws.indexOf(lastConcession);
+          if (results.checkIndex(concessionDrawMatch, lastConcession + " in concession draw pile")) { return results.show(); }
+          if (concessionDrawMatch < game.numMajors - 1) {
+            // If last bid private is not on bottom of draw pile, add the next private to ongoing list
+            lastConcession = concessionDraws[concessionDrawMatch + 1];
+            newConcessions.push(lastConcession);
+            concessionsLeft = true;
+          }
+          else {
+            // If last bid private is on bottom of draw pile, pad list with blanks
+            newConcessions.push("");
+          }
+        }
+        if (concessionsLeft) {
+          concessionOrder = "New concession bid box order: " + newConcessions.filter( function(val) { return !val.isBlank(); }).join(", ");
+        }
+        for (i=0; i<newConcessions.length; i++) {
+          results.change(1, colConcessionBids + i, newConcessions[i], true);
+        }
+        
+      }
+      results.log(concessionOrder);
+    }
+    else {
+      results.log("Concessions were removed from play in phase 5");
     }
     if (sold.length > 0) {
       results.reminder("Update stock market for newly launched minors: " + sold.join(", "));
     }
-    
-    // Determine concessions to place in new bid boxes
-    var concessionOrder = "All concessions have sold";
-    if (lastConcession) {
-      while (newConcessions.length < CONCESSIONS_FOR_BIDDING) {
-        lastConcession = lastConcession.toString().toUpperCase();
-        
-        // Search for last concession in draw pile
-        var concessionDrawMatch = concessionDraws.indexOf(lastConcession);
-        if (results.checkIndex(concessionDrawMatch, lastConcession + " in concession draw pile")) { return results.show(); }
-        if (concessionDrawMatch < game.numMajors - 1) {
-          // If last bid private is not on bottom of draw pile, add the next private to ongoing list
-          lastConcession = concessionDraws[concessionDrawMatch + 1];
-          newConcessions.push(lastConcession);
-          concessionsLeft = true;
-        }
-        else {
-          // If last bid private is on bottom of draw pile, pad list with blanks
-          newConcessions.push("");
-        }
-      }
-      if (concessionsLeft) {
-        concessionOrder = "New concession bid box order: " + newConcessions.filter( function(val) { return !val.isBlank(); }).join(", ");
-      }
-      for (i=0; i<newConcessions.length; i++) {
-        results.change(1, colConcessionBids + i, newConcessions[i], true);
-      }
-      
-    }
-    results.log(concessionOrder);
     
     // CHECK FOR SOLD-OUT MAJORS
     var soldoutMajors = [];
@@ -944,7 +951,7 @@ function createNewRound(formObject) {
           return a.order > b.order ? 1 : a.order < b.order ? -1 : 0;
         });
         for (i=0; i<ndemOperators.length; i++) {
-          ndemMsg += "\n    " + ndemOperators[i].player + " - ";
+          ndemMsg += "\n--->" + ndemOperators[i].player + " - ";
         }
       }
       else {
@@ -1043,7 +1050,7 @@ function createNewRound(formObject) {
     }    
     
     if (openMinors.length + openMajors.length > 0) {
-      results.outline("Order for companies with same share price may not be correct.");
+      results.outline("\nOrder for companies with same share price may not be correct.");
     }
   }
 
