@@ -1045,12 +1045,13 @@ function createNewRound(formObject) {
     }
     
     // If NdeM was not just privatized, it operates last
-    if (game.name == "1822mx" && phase < 7 || !ndemPrivatized) {
+    if (game.name == "1822mx" && phase < 7) {
       results.outline(ndemMsg);
     }    
     
     if (openMinors.length + openMajors.length > 0) {
-      results.outline("\nOrder for companies with same share price may not be correct.");
+      results.outline("");
+      results.outline("Order for companies with same share price may not be correct.");
     }
   }
 
