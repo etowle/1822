@@ -189,27 +189,27 @@ function createNewRound(formObject) {
   var winningBidRow = winnerRow + 1;
   
   // Get row/column for minor draw pile box
-  var minorDrawIndices = results.data.indexOf2D(["Order", "Minor"]);
+  var minorDrawIndices = results.data.indexOf2D(["Order", "", "Minor"]);
   if (results.checkIndex(minorDrawIndices[0], "minor draw pile")) { return results.show(); }
   // Extract array of draw order
   var minorDrawRow = minorDrawIndices[0] + 1;
-  var minorDrawCol = minorDrawIndices[1] + 1;
+  var minorDrawCol = minorDrawIndices[1] + 2;
   var minorDraws = results.data.map(function(value) { return value[minorDrawCol]; }).splice(minorDrawRow, game.numMinors);
   
   // Get row/column for private draw pile box
-  var privateDrawIndices = results.data.indexOf2D(["Order", "Private"]);
+  var privateDrawIndices = results.data.indexOf2D(["Order", "", "Private"]);
   if (results.checkIndex(privateDrawIndices[0], "private draw pile")) { return results.show(); }
   // Extract array of draw order
   var privateDrawRow = privateDrawIndices[0] + 1;
-  var privateDrawCol = privateDrawIndices[1] + 1;
+  var privateDrawCol = privateDrawIndices[1] + 2;
   var privateDraws = results.data.map(function(value) { return value[privateDrawCol]; }).splice(privateDrawRow, game.numPrivates);
   
   // Get row/column for major concession draw pile box
-  var concessionDrawIndices = results.data.indexOf2D(["Order", "Concession"]);
+  var concessionDrawIndices = results.data.indexOf2D(["Order", "", "Concession"]);
   if (results.checkIndex(concessionDrawIndices[0], "major concession draw pile")) { return results.show(); }
   // Extract array of draw order
   var concessionDrawRow = concessionDrawIndices[0] + 2;
-  var concessionDrawCol = concessionDrawIndices[1] + 1;
+  var concessionDrawCol = concessionDrawIndices[1] + 2;
   var concessionDraws = results.data.map(function(value) { return value[concessionDrawCol]; }).splice(concessionDrawRow, game.numMajors);
   
   // Get row/column for end-of-round private ownership
@@ -219,7 +219,7 @@ function createNewRound(formObject) {
   var privateOwnerCol = privateOwnerIndices[1];
   
   // Get row/column for end-of-round concession ownership
-  var concessionOwnerIndices = results.data.indexOf2D("End Ownr");
+  var concessionOwnerIndices = results.data.indexOf2D("End Owner");
   if (results.checkIndex(concessionOwnerIndices[0], "concession ownership cells")) { return results.show(); }
   var concessionOwnerRow = concessionOwnerIndices[0];
   var concessionOwnerCol = concessionOwnerIndices[1];
