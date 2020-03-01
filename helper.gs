@@ -128,7 +128,7 @@ function getSheetNames() {
   var names = [];
   for (i=0; i<sheets.length; i++) {
     var name = sheets[i].getName();
-    if (name.toLowerCase() != "extra data") {
+    if (name.toLowerCase() != "setup") {
       names.push(name);
     }
   }

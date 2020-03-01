@@ -338,8 +338,7 @@ function createNewRound(formObject) {
         // Add minor share count to owner's row
         results.change(playerRow[winner], thisMinorCol, game.minorDirectorShares);
         
-        // Add player as director
-        results.change(directorRow, minorCol[minor.toString().toUpperCase()], winner);
+        // No need to set player as director; this is done via formula
         
         // Set starting price/treasury
         var startPrice = 50;
@@ -1134,6 +1133,15 @@ function confirmNewRound() {
   // Update values
   newSheet.getRange(1, 1, queuedChanges.lastRow, queuedChanges.lastCol).setValues(data);
   SpreadsheetApp.flush();
+  
+  // Copy protections from old sheet to new sheet
+  // All protections in new sheet will be warning-only
+  var protections = curSheet.getProtections(SpreadsheetApp.ProtectionType.RANGE);
+  for (var i=0; i<protections.length; i++) {
+    var prot = protections[i];
+    var protRange = prot.getRange().getA1Notation();
+    var newProt = newSheet.getRange(protRange).protect().setWarningOnly(true);
+  } 
   
   // Display outline. Stucture is:
   // Name of new round
