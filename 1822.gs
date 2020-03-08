@@ -754,8 +754,7 @@ function createNewRound(formObject) {
             // Add minor share count to owner's row
             results.change(playerRow[winner], minorCol["M18"], 1);
             
-            // Add player as director
-            results.change(directorRow, minorCol["M18"], winner);
+            // No need to set player as director; this is done via formula
             
             // Starting price is always $50, starting treasury is always $100
             results.change(marketRow, minorCol["M18"], 50);
@@ -993,8 +992,17 @@ function createNewRound(formObject) {
     // Second tiebreaker: draw pile order (minors higher in draw pile order should go before those lower)
     var openMinors = [];
     for (i=0; i<game.numMinors; i++) {
-      // Only consider a minor launched if it has a director and no merger comments
-      if (results.data[mergerCommentsRow][minorStartCol + i].trim() == "" && results.data[directorRow][minorStartCol + i].trim() !== "") {
+      // Determine if this minor has a director
+      let thisDirector = "";
+      for (j=0; j<numPlayers; j++) {
+        if (results.data[2 + j][minorCol[i+1]] > 0) {
+          thisDirector = results.data[2 + j][1];
+          break;
+        }
+      }
+      
+      // Only consider a minor launched if someone has at least one share and there are no merger comments
+      if (thisDirector !== "" && results.data[mergerCommentsRow][minorStartCol + i].trim() == "") {
         // Find match in minor draw pile
         let thisMatch = -1;
         for (j=0; j<minorDraws.length; j++) {
@@ -1020,7 +1028,7 @@ function createNewRound(formObject) {
         
         // Create weight on the interval 
         // Add to array of open minors
-        openMinors.push({"name": thisMinor, "director": results.data[directorRow][minorStartCol + i].trim(), "sharePrice": results.data[marketRow][minorStartCol + i], "weight": thisWeight});
+        openMinors.push({"name": thisMinor, "director": thisDirector, "sharePrice": results.data[marketRow][minorStartCol + i], "weight": thisWeight});
       }
     }
     // Sort open minors based on the share price and the weight from the draw pile order
