@@ -974,7 +974,7 @@ function createNewRound(formObject) {
         }
       }
       else {
-        ndemMsg += "no operators";
+        ndemMsg += "no shareholders";
       }
     }
     
