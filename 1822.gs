@@ -315,7 +315,7 @@ function createNewRound(formObject) {
           let removeSummary = `Minor ${removedMinor} was removed.`;
           if (phase < 7 && game.name == "1822mx") {
             // While NdeM is open, it absorbs removed minor's location
-            removeSummary += "NdeM token placed on its home location on the board";
+            removeSummary += " NdeM token placed on its home location on the board";
             let removeReminder = `Add an NdeM token to minor ${removedMinor}'s home location`;
             results.reminder(removeReminder);
           }
@@ -866,7 +866,7 @@ function createNewRound(formObject) {
       results.change(players[i].row, 0, i + 1, true);
     }
     
-    let playerOrder = players.map(a => a.name);
+    var playerOrder = players.map(a => a.name);
     results.log("New player order: " + playerOrder.join(', '));
   }
   
