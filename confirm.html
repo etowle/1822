@@ -38,7 +38,7 @@ function populateLog(queuedChanges) {
   $('#log').append(sumLi);
   
   // Populate list
-  for (i=0; i<queuedChanges.log.length; i++) {
+  for (var i=0; i<queuedChanges.log.length; i++) {
     var li = '<li class="list-group-item py-1">' + queuedChanges.log[i] + '</li>';
     $('#log').append(li);
   }

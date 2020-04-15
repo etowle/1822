@@ -130,7 +130,7 @@ function detectGameName() {
   let cells = SpreadsheetApp.getActiveSheet().getRange(1, 1, 40, 2).getValues();
   let games = supportedGames();
   let gameName = null;
-  for (i=0; i<games.length; i++) {
+  for (var i=0; i<games.length; i++) {
     var roundInd = cells.indexOf2D(games[i].toUpperCase());
     if (roundInd[0] > -1 && roundInd[0] <= 39) {
       gameName = cells[roundInd[0]][roundInd[1]];
@@ -158,7 +158,7 @@ function detectRound(name) {
 function getSheetNames() {
   let sheets = SpreadsheetApp.getActiveSpreadsheet().getSheets();
   let names = [];
-  for (i=0; i<sheets.length; i++) {
+  for (var i=0; i<sheets.length; i++) {
     var name = sheets[i].getName();
     if (name.toLowerCase() != "setup") {
       names.push(name);
@@ -244,10 +244,10 @@ Array.prototype.indexOf2D = function(search,vOrient){
   }
   
   // Search for specified subarray
-  for (i=0; i<this.length - (1 - vOrient)*(search.length + 1); i++) {
+  for (var i=0; i<this.length - (1 - vOrient)*(search.length + 1); i++) {
     colLoop:
-    for (j=0; j<this[i].length - vOrient*(search.length + 1); j++) {
-      for (k=0; k<search.length; k++) {
+    for (var j=0; j<this[i].length - vOrient*(search.length + 1); j++) {
+      for (var k=0; k<search.length; k++) {
         if (this[i + vOrient*k][j+(1 - vOrient)*k] != search[k] && search[k] != "*") {
           continue colLoop;
         }
