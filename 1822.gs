@@ -17,8 +17,6 @@ function createNewRoundWrapper(formObject) {
   catch(err) {
     let ui = SpreadsheetApp.getUi();
     let errMsg = "Encountered the following error during script execution:\n\n";
-    errMsg += err;
-    errMsg += "\n";
     errMsg += err["stack"];
     errMsg += "\nPlease open an issue at https://github.com/etowle/1822. Please describe the issue and provide a link to a copy of the sheet that caused the error.";
     ui.alert("Error!", errMsg, ui.ButtonSet.OK);
@@ -28,6 +26,7 @@ function createNewRoundWrapper(formObject) {
 // Create new OR/SR
 function createNewRound(formObject) {
   var results = new Results();
+  let ui = SpreadsheetApp.getUi();
   results.gameName = formObject.gameName;
   results.newName = formObject.newName;
   results.newType = formObject.newType;
@@ -35,7 +34,10 @@ function createNewRound(formObject) {
   
   // Get game-specific data
   var game = getSetup(results.gameName);
-  if (!game) { results.error("Error retrieving details for selected game."); }
+  if (!game) {
+    results.error("Error retrieving details for selected game.");
+    return results.show();
+  }
   
   // Valid names of minors
   const MINORS = (function(){

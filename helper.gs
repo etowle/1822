@@ -13,11 +13,25 @@ function onOpen(e) {
 }
 
 function openNewRoundDialog() {
-  var html = HtmlService.createHtmlOutputFromFile('round')
-  .setWidth(580)
-  .setHeight(260)
-  SpreadsheetApp.getUi()
-  .showModalDialog(html, 'Create new round');
+  // Auto-detect game name
+  let gameName = detectGameName();
+  if (gameName == null) {
+    // Game name not found in active sheet
+    let ui = SpreadsheetApp.getUi();
+    let errMsg = "Unable to determine name of game.";
+    ui.alert("Error!", errMsg, ui.ButtonSet.OK);
+  }
+  else {
+    // Save game name
+    let scriptProperties = PropertiesService.getScriptProperties();
+    scriptProperties.setProperty('gameName', gameName.toLowerCase());
+    
+    let html = HtmlService.createHtmlOutputFromFile('round')
+    .setWidth(580)
+    .setHeight(260)
+    SpreadsheetApp.getUi()
+    .showModalDialog(html, 'Create new ' + gameName + ' round');
+  }
 }
 
 function Results() {
@@ -103,20 +117,37 @@ function Results() {
 }
 
 function getQueuedChanges() {
-  var userProperties = PropertiesService.getUserProperties();
-  var queuedChanges = JSON.parse(userProperties.getProperty("queuedChanges"));
+  let userProperties = PropertiesService.getUserProperties();
+  let queuedChanges = JSON.parse(userProperties.getProperty("queuedChanges"));
   return queuedChanges;
+}
+
+// Detect game name
+// This value must be in the two columns and the first 40 rows
+function detectGameName() {
+  // Use active sheet
+  let cells = SpreadsheetApp.getActiveSheet().getRange(1, 1, 40, 2).getValues();
+  let games = supportedGames();
+  let gameName = null;
+  for (i=0; i<games.length; i++) {
+    var roundInd = cells.indexOf2D(games[i].toUpperCase());
+    if (roundInd[0] > -1 && roundInd[0] <= 39) {
+      gameName = cells[roundInd[0]][roundInd[1]];
+      break;
+    }
+  }
+  return gameName;
 }
 
 // Detect whether a given sheet is a stock round or operating round
 // This value must be in the first 10 columns and the first 40 rows
 function detectRound(name) {
-  var cells = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(name).getRange(1, 1, 40, 10).getValues();
-  var roundInd = cells.indexOf2D("Enter \nOR/SR");
+  let cells = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(name).getRange(1, 1, 40, 10).getValues();
+  let roundInd = cells.indexOf2D("Enter \nOR/SR");
   if (roundInd[0] == -1 || roundInd[0] >= 39) {
     return null;
   }
-  var round = cells[roundInd[0] + 1][roundInd[1]];
+  let round = cells[roundInd[0] + 1][roundInd[1]];
   if (round == "OR" || round == "SR") {
     return round;
   }
@@ -124,8 +155,8 @@ function detectRound(name) {
 }
 
 function getSheetNames() {
-  var sheets = SpreadsheetApp.getActiveSpreadsheet().getSheets();
-  var names = [];
+  let sheets = SpreadsheetApp.getActiveSpreadsheet().getSheets();
+  let names = [];
   for (i=0; i<sheets.length; i++) {
     var name = sheets[i].getName();
     if (name.toLowerCase() != "setup") {
@@ -133,6 +164,11 @@ function getSheetNames() {
     }
   }
   return names;
+}
+
+function getGameName() {
+  let scriptProperties = PropertiesService.getScriptProperties();
+  return scriptProperties.getProperty('gameName');
 }
 
 function validateForm(formObject) {

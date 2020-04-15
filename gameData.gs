@@ -4,6 +4,10 @@
 
 // Stores specific rules data for each supported 1822-style game
 
+function supportedGames() {
+  return ["1822mx", "1822ca"];
+}
+
 function getSetup(game) {
   if (game == "1822mx") {
     var minPlayers = 3;

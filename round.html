@@ -7,11 +7,20 @@
     <script>
       function handleFormSubmit() {
         btnLoading();
-        var formObject = document.getElementById('roundForm');
-        google.script.run.withSuccessHandler(handleValidateForm).validateForm(formObject);
+        
+        // Retrieve form values
+        var formObject = {"newName": $('#new-round').val(), "newType": $('input[name="newType"]:checked').val(), "currentName": $('#current-round').val()};
+        
+        // Set gameName property
+        google.script.run.withSuccessHandler(setGameName).withUserObject(formObject).getGameName();
       }
       
-      function handleValidateForm(errors) {
+      function setGameName(name, formObject) {
+        formObject.gameName = name;
+        google.script.run.withSuccessHandler(handleValidateForm).withUserObject(formObject).validateForm(formObject);
+      }
+      
+      function handleValidateForm(errors, formObject) {
         // Modify CSS depending on validity of entries
         if (errors.newName) {
           $('#new-round').removeClass('is-invalid');
@@ -30,7 +39,7 @@
         }
         
         if (errors.newName && errors.currentName) {
-          submitForm();
+          submitForm(formObject);
         }
       }
       
@@ -38,8 +47,7 @@
         google.script.host.close();
       }
       
-      function submitForm() {
-        var formObject = document.getElementById('roundForm');
+      function submitForm(formObject) {
         google.script.run.withSuccessHandler(closeDialog).createNewRoundWrapper(formObject);
       }
       
@@ -139,15 +147,6 @@ function populateNames(names) {
 }
 </script>
       </div>
-      <div class="col-sm-5 mt-3 ml-auto">
-        <label class="form-check-label">Game:</label>
-        <select class="form-control" id="game-name" name="gameName">
-          <option value="1822ca">1822CA</option>
-          <option value="1822mx">1822MX</option>
-        </select>
-        <h6><small id="detected">&nbsp;</small></h6>
-      </div>
-      
     </div>
     <div class="row mt-3">
       <div class="col-sm-4 offset-sm-4">
