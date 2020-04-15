@@ -135,7 +135,7 @@ function createNewRound(formObject) {
   var trainsRow = mergerCommentsRow + 7;
   
   // Get OR/SR
-  var typeMatch = results.data.indexOf2D("Enter \nOR/SR");
+  var typeMatch = results.data.indexOf2D("Enter\nOR/SR");
   if (results.checkIndex(typeMatch[0], "round type designation")) { return results.show(); }
   var typeRow = typeMatch[0] + 1;
   var typeCol = typeMatch[1];
