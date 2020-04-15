@@ -144,7 +144,7 @@ function detectGameName() {
 // This value must be in the first 10 columns and the first 40 rows
 function detectRound(name) {
   let cells = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(name).getRange(1, 1, 40, 10).getValues();
-  let roundInd = cells.indexOf2D("Enter \nOR/SR");
+  let roundInd = cells.indexOf2D("Enter\nOR/SR");
   if (roundInd[0] == -1 || roundInd[0] >= 39) {
     return null;
   }
