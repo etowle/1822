@@ -40,6 +40,7 @@ function Results() {
   this.newType = "";
   this.currentName = "";
   this.currentType = "";
+  this.protect = true;
   this.data = [];
   this.changes = [];
   this.logged = [];
@@ -98,7 +99,7 @@ function Results() {
     else {
       // Save data as strings using user properties
       var userProperties = PropertiesService.getUserProperties();
-      var queuedChanges = {"gameName": this.gameName, "newName": this.newName, "newType": this.newType, "currentName": this.currentName, "currentType": this.currentType, "log": this.logged, "changes": this.changes, "summary": this.summary, "outlines": this.outlines, "reminders": this.reminders, "lastRow": this.lastRow, "lastCol": this.lastCol};
+      var queuedChanges = {"gameName": this.gameName, "newName": this.newName, "newType": this.newType, "currentName": this.currentName, "currentType": this.currentType, "protect": this.protect, "log": this.logged, "changes": this.changes, "summary": this.summary, "outlines": this.outlines, "reminders": this.reminders, "lastRow": this.lastRow, "lastCol": this.lastCol};
       userProperties.setProperty("queuedChanges", JSON.stringify(queuedChanges));
       
       if (this.currentType == "SR") {

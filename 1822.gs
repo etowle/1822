@@ -18,7 +18,7 @@ function createNewRoundWrapper(formObject) {
     let ui = SpreadsheetApp.getUi();
     let errMsg = "Encountered the following error during script execution:\n\n";
     errMsg += err["stack"];
-    errMsg += "\nPlease open an issue at https://github.com/etowle/1822. Please describe the issue and provide a link to a copy of the sheet that caused the error.";
+    errMsg += "\n\nPlease open an issue at https://github.com/etowle/1822. Please describe the issue and provide a link to a copy of the sheet that caused the error.";
     ui.alert("Error!", errMsg, ui.ButtonSet.OK);
   }
 }
@@ -31,6 +31,7 @@ function createNewRound(formObject) {
   results.newName = formObject.newName;
   results.newType = formObject.newType;
   results.currentName = formObject.currentName;
+  results.protect = formObject.protect;
   
   // Get game-specific data
   var game = getSetup(results.gameName);
@@ -963,7 +964,8 @@ function createNewRound(formObject) {
       for (i=0; i<numPlayers; i++) {
         if (results.data[2+i][ndemCol] > 0) {
           let player = results.data[2 + i][1];
-          ndemOperators.push({"player": player, "order": playerOrder.indexOf(player)});
+          let order = results.data[2 + i][0];
+          ndemOperators.push({"player": player, "order": order});
         }
       }
       if (ndemOperators.length > 0) {
@@ -1143,14 +1145,16 @@ function confirmNewRound() {
   newSheet.getRange(1, 1, queuedChanges.lastRow, queuedChanges.lastCol).setValues(data);
   SpreadsheetApp.flush();
   
-  // Copy protections from old sheet to new sheet
+  // If specified, copy protections from old sheet to new sheet
   // All protections in new sheet will be warning-only
-  var protections = curSheet.getProtections(SpreadsheetApp.ProtectionType.RANGE);
-  for (var i=0; i<protections.length; i++) {
-    let prot = protections[i];
-    let protRange = prot.getRange().getA1Notation();
-    let newProt = newSheet.getRange(protRange).protect().setWarningOnly(true);
-  } 
+  if (queuedChanges.protect) {
+    var protections = curSheet.getProtections(SpreadsheetApp.ProtectionType.RANGE);
+    for (var i=0; i<protections.length; i++) {
+      let prot = protections[i];
+      let protRange = prot.getRange().getA1Notation();
+      let newProt = newSheet.getRange(protRange).protect().setWarningOnly(true);
+    }
+  }
   
   // Display outline. Stucture is:
   // Name of new round
