@@ -31,7 +31,7 @@ Once the round is generated, an outline for the new round is presented. This can
 
 ![Menu item](/img/menu.png)
 
-2. Complete the dialog box with information about the round you would like to generate.
+2. Complete the dialog box with information about the round you would like to generate. There is an option to copy cell protections from the previous sheet. These protections are already added to the SR1 sheet of each template. They are useful for preventing players from accidentally overwriting formula-based cells. However, copying protections is a surprisingly time-consuming task in Google Sheets, so this may add several seconds to the script's runtime.
 
 ![New round dialog](/img/new_round.png)
 
