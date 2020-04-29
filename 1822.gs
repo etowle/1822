@@ -323,7 +323,7 @@ function createNewRound(formObject) {
             results.reminder(removeReminder);
           }
           else {
-            removeSummary += "Its home location is now available for other station markers";
+            removeSummary += " Its home location is now available for other station markers";
           }
           results.summarize(removeSummary);
         }
