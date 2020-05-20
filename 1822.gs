@@ -464,7 +464,8 @@ function createNewRound(formObject) {
           // Did this trigger a phase change?
           // I.e., this was the first train bought of this type
           if (thisTrainsBought == 1) {
-            phase++;
+            // Don't necessarily increment by one. User may not be properly updating the phase
+            phase = parseInt(acquiredType) || phase + 1
             results.change(phaseRow, 0, phase);
             let phaseChange = `Phase ${phase} begins`;
             extraExportMsg = `Export of a ${acquiredType}-train by removal of ${removedMinor} triggered phase ${phase}`;
