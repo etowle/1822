@@ -214,9 +214,10 @@ function createNewRound(formObject) {
   var concessionDrawIndices = results.data.indexOf2D(["Order", "", "Concession"]);
   if (results.checkIndex(concessionDrawIndices[0], "major concession draw pile")) { return results.show(); }
   // Extract array of draw order
-  var concessionDrawRow = concessionDrawIndices[0] + 2;
+  var concessionDrawRow = concessionDrawIndices[0] + 1;
   var concessionDrawCol = concessionDrawIndices[1] + 2;
-  var concessionDraws = results.data.map(value => value[concessionDrawCol]).splice(concessionDrawRow, game.numMajors);
+  // Convert all concession draws to uppercase
+  var concessionDraws = results.data.map(value => value[concessionDrawCol]).splice(concessionDrawRow, game.numMajors).map(m => m.toUpperCase());
   
   // Get row/column for end-of-round private ownership
   var privateOwnerIndices = results.data.indexOf2D("End of round");
@@ -716,8 +717,8 @@ function createNewRound(formObject) {
         let winner = results.data[winnerRow][colConcessionBids + i];
         
         // Is this FCM?
-        let concession = concessionFull.toString().toUpperCase();
-        if (concession.indexOf("FCM") > -1) {
+        let concession = concessionFull.toString();
+        if (concession.toUpperCase().indexOf("FCM") > -1) {
           concession = "FCM";
         }
         
@@ -733,7 +734,7 @@ function createNewRound(formObject) {
         }
         
         // Is this item is the list of valid items?
-        if (!game.majors.includes(concession.toUpperCase())) {
+        if (!game.majors.map(m => m.toUpperCase()).includes(concession.toUpperCase())) {
           results.error(`Major concession "${concession}" in bid box ${i+1} not recognized`);
           return results.show();
         }
