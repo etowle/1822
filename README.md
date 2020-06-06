@@ -53,15 +53,13 @@ No, it's not published. You will have to give the script read/write access to th
 The code is visible at Tools->Script editor.
 
 ### "Unable to locate" something?
-There are two primary ways to interact programatically with the spreadsheet. The first method is to use hardcoded range values (e.g., changing "cell A15"). This is great if rows and columns are never deleted from or added to your workbook. The second method is to search for cells based on the contents of other cells (e.g., searching for a cell containing the text "Trains", then changing the cell directly below it). This method is great if the contents of those indicator cells are never changed.
-
-The script uses the second method for finding data in the spreadsheet. I found that players delete/add rows and columns much more frequently than they edit certain cell contents. *This error means that the script can't find a certain group of cells because the contents of the cell(s) it uses to locate them has changed*. Only non-formulaic player, bidding, market, ownership, and operational data should be modified.
+This error means that the script can't find a certain group of cells, because the contents of the cell(s) it uses to locate them has changed. Only non-formulaic player, bidding, market, ownership, and operational data should be modified.
 
 ### "Invalid trains"? What does that mean?
 A company's trains must be separated by commas. The following are recognized as valid train types for the games in which they are included: E, 7, 6, 5, 4, 3, 2, L, 2P, P2, 3/2, 3/2P, P3/2, LP, PL, P+, +, and G. If any other trains are listed in a company's train cell (or trains from this list that do not belong in a particular game), the script will not run until these train cells are fixed. This is important for properly rusting and discarding trains during phase changes triggered by train exports at the end of a stock round.
 
 ### I found a bug!
-I am relatively new to 18xx games, so it's very likely there are a few bugs. This is also my first project using JavaScript/Google Apps Script. Please open an issue for problems that you find. It would be very helpful if you can provide a link to an example sheet for which the round generator behaves incorrectly.
+Good job! This is my first project using JavaScript/Google Apps Script, so I suppose we could have seen this coming. Please open an issue for problems that you find. It would be very helpful if you can provide a link to an example sheet for which the round generator behaves incorrectly.
 
 ### Does this work on mobile?
 
