@@ -33,6 +33,9 @@ function createNewRound(formObject) {
   results.currentName = formObject.currentName;
   results.protect = formObject.protect;
   
+  // Number of header rows at top of sheet
+  var headerRows = 3;
+  
   // Get game-specific data
   var game = getSetup(results.gameName);
   if (!game) {
@@ -103,9 +106,9 @@ function createNewRound(formObject) {
   if (results.checkIndex(playerIndices[0], "list of players")) { return results.show(); }
   var playerRow = {};
   for (var i=0; i<game.maxPlayers; i++) {
-    var playerName = results.data[playerIndices[0] + 1 + i][playerIndices[1] + 1];
+    var playerName = results.data[playerIndices[0] + headerRows - 1 + i][playerIndices[1] + 1];
     if (playerName != "" && playerName != "-") {
-      playerRow[playerName] = playerIndices[0] + 1 + i;
+      playerRow[playerName] = playerIndices[0] + headerRows - 1 + i;
     }
   }
   
@@ -251,7 +254,7 @@ function createNewRound(formObject) {
   // Get row/column for income/spending cells
   var incomeIndices = results.data.indexOf2D(game.incomeHeaders);
   if (results.checkIndex(incomeIndices[0], "income header cells")) { return results.show(); }
-  var incomeRow = incomeIndices[0] + 1;
+  var incomeRow = incomeIndices[0] + headerRows - 1;
   var incomeCol = incomeIndices[1];
   
   // Get row for operational data
@@ -855,11 +858,11 @@ function createNewRound(formObject) {
     var ownerP7 = results.data[privateOwnerRow + 7][privateOwnerCol];
     var players = [];
     for (var i=0; i<numPlayers; i++) {
-      let thisRow = 2 + i;
-      let playerName = results.data[2+i][1];
+      let thisRow = headerRows + i;
+      let playerName = results.data[headerRows + i][1];
       // In case of tie, retain player order from previous SR
       // To account for this, add a small amount <1 based on previous order
-      let playerCash = (playerName == ownerP7 ? 2 : 1) * results.data[2+i][4] + 0.1*(numPlayers - results.data[2+i][0]);
+      let playerCash = (playerName == ownerP7 ? 2 : 1) * results.data[headerRows + i][4] + 0.1*(numPlayers - results.data[headerRows + i][0]);
       players.push({name: playerName, cash: playerCash, row: thisRow});
     }
     players.sort(function(a,b) {
@@ -942,8 +945,8 @@ function createNewRound(formObject) {
     // Determine player order
     nextOrder = [];
     for (var i=0; i<numPlayers; i++) {
-      var player = results.data[2 + i][1];
-      var order = results.data[2 + i][0];
+      var player = results.data[headerRows + i][1];
+      var order = results.data[headerRows + i][0];
       nextOrder.push({"player": player, "order": order});
     }
     nextOrder.sort(function(a,b) { return a.order > b.order ? 1 : a.order < b.order ? -1 : 0; });
@@ -963,9 +966,9 @@ function createNewRound(formObject) {
       // Look for players with NdeM shares
       let ndemOperators = [];
       for (var i=0; i<numPlayers; i++) {
-        if (results.data[2+i][ndemCol] > 0) {
-          let player = results.data[2 + i][1];
-          let order = results.data[2 + i][0];
+        if (results.data[headerRows + i][ndemCol] > 0) {
+          let player = results.data[headerRows + i][1];
+          let order = results.data[headerRows + i][0];
           ndemOperators.push({"player": player, "order": order});
         }
       }
@@ -1000,8 +1003,8 @@ function createNewRound(formObject) {
       // Determine if this minor has a director
       let thisDirector = "";
       for (var j=0; j<numPlayers; j++) {
-        if (results.data[2 + j][minorCol[i+1]] > 0) {
-          thisDirector = results.data[2 + j][1];
+        if (results.data[headerRows + j][minorCol[i+1]] > 0) {
+          thisDirector = results.data[headerRows + j][1];
           break;
         }
       }
