@@ -1161,6 +1161,10 @@ function confirmNewRound() {
     }
   }
   
+  // Protect previous sheet
+  // Helps prevent players from accidentally entering data into a previous round's sheet
+  curSheet.protect().setWarningOnly(true);
+  
   // Display outline. Stucture is:
   // Name of new round
   //   Summary
