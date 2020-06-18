@@ -21,6 +21,7 @@ When creating a new operating round from an existing stock round, the script doe
 5. Increases stock prices for sold-out majors
 6. Creates a new sheet and clears out all round-specific information
 7. Updates private, minor, and concession bid boxes with the next set of companies
+8. Locks the previous sheet to prevent players from inadvertently editing the wrong sheet. Optionally copies cell protections from the previous sheet to prevent players from editing important header/formula cells.
 
 Once the round is generated, an outline for the new round is presented. This can be copied into (e.g.) a Google Doc or forum thread to outline the new round for games played via email/post. My group uses [Board18](https://dev2.board18.org/) for the map, a Google Sheets document to manage the game, a Google Docs document for the log, and a Google Group for making "moves" and sending out email alerts.
 
@@ -48,7 +49,11 @@ Please do not edit cells that serve as headers for other cells (e.g., cells with
 ## FAQs
 
 ### This app isn't verified!?
-No, it's not published. You will have to give the script read/write access to the Google Sheet the first time you run it. On the "This app isn't verified" screen, click "Advanced", then "Go to 1822 (unsafe)". Clicking "Allow" gives the script the permission to read and write to the specific Google Sheet, as well as display content in prompts and sidebars. The script does not have any other permissions or access to your Google Drive.
+No, it's not published. You will have to give the script read/write access to the Google Sheet the first time you run it. On the "This app isn't verified" screen, click "Advanced", then "Go to 1822 (unsafe)".
+
+![Unverified app](/img/unverified.png)
+
+Clicking "Allow" gives the script the permission to read and write to the specific Google Sheet, as well as display content in prompts and sidebars. The script does not have any other permissions or access to your Google Drive.
 
 The code is visible at Tools->Script editor.
 
