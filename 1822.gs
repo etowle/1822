@@ -522,8 +522,7 @@ function createNewRound(formObject) {
       
       let numRustedTrains = rustedTrains.length;
       if (numRustedTrains > 0) {
-        let plural = "s";
-        if (numRustedTrains == 1) { plural = ""; }
+        let plural = numRustedTrains == 1 ? "" : "s";
         trains.msg = `${coName} loses ${numRustedTrains} train${plural} (` + rustedTrains.join(', ') + ") to rusting";
       }
       trains.trains = newTrains.join(',');
