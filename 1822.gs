@@ -278,6 +278,9 @@ function createNewRound(formObject) {
     var taxRow = taxIndices[0];
   }
   
+  // Types of "discardable" (normal) trains
+  var discardable = ["L", "2", "3", "4", "5", "6", "7", "E"];
+  
   // Whether or not NdeM was privatized at the end of a stock round
   var ndemPrivatized = false;
   
@@ -566,7 +569,7 @@ function createNewRound(formObject) {
       // Discard trains to phase limit
       // Only discard non-permanent trains
       let trainArr = thisTrains.trains.trainStringToArray();
-      let canDiscard = trainArr.diff(game.permanents);
+      let canDiscard = trainArr.filter(x => discardable.includes(x)).diff(game.permanents);
       let thisPerms = trainArr.diff(TRAINS);
       // Sort trains: L's first, E's last
       canDiscard.sort(function(a,b){
@@ -620,11 +623,10 @@ function createNewRound(formObject) {
       }
     }
     
-    // Check if invalid trains were found
+    // Add "invalid trains" message to log
     if (trainErrors.length > 0) {
-      let errorMsg = "Error rusting trains. Invalid trains: " + trainErrors.join("; ");
-      results.error(errorMsg);
-      return results.show();
+      let ignoreMsg = "Ignoring invalid trains: " + trainErrors.join("; ");
+      results.log(ignoreMsg);
     }
     
     // RESOLVE PRIVATE BIDS
