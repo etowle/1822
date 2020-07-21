@@ -554,7 +554,7 @@ function createNewRound(formObject) {
       thisTrains = thisTrains.trainStringToArray();
       let invalidTrains = getInvalidTrains(thisTrains);
       if (invalidTrains.length > 0) {
-        trainErrors.push(invalidTrains.join(", ") + ` (${cos[i].name}`)
+        trainErrors.push(invalidTrains.join(", ") + ` (${cos[i].name})`)
       }
       
       // Rust trains
