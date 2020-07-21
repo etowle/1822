@@ -3,7 +3,7 @@
 
 This is an automatic round generator for 1822-style games. The supported games and links to their corresponding Google Sheets documents are below.
 
-* [1822CA (full map)](https://docs.google.com/spreadsheets/d/15jnmCJ9VuseIv2GcbuPA-qvkE2jV9F0pYEVA4xVc-6c/edit?usp=sharing) - based on template by Robert Lecuyer
+* [1822CA (full map)](https://docs.google.com/spreadsheets/d/15jnmCJ9VuseIv2GcbuPA-qvkE2jV9F0pYEVA4xVc-6c/edit?usp=sharing) - based on template by Bob Lecuyer
 * [1822MX](https://docs.google.com/spreadsheets/d/1DuOTSOAqH1c4XfLEcM2RXNUfq-yXfz1IhUx4m5SqqnQ/edit?usp=sharing) - based on template by Scott Petersen
 
 The round generator has already been added to each spreadsheet. The spreadsheets linked above are read-only; to use them, save a copy to your own Google Drive with File->"Make a copy" and share the sheet with the other players in your game. The script only works on a desktop computer.
@@ -61,7 +61,7 @@ The code is visible at Tools->Script editor.
 This error means that the script can't find a certain group of cells, because the contents of the cell(s) it uses to locate them has changed. Only non-formulaic player, bidding, market, ownership, and operational data should be modified.
 
 ### "Invalid trains"? What does that mean?
-A company's trains must be separated by commas. The following are recognized as valid train types for the games in which they are included: E, 7, 6, 5, 4, 3, 2, L, 2P, P2, 3/2, 3/2P, P3/2, LP, PL, P+, +, and G. If any other trains are listed in a company's train cell (or trains from this list that do not belong in a particular game), the script will not run until these train cells are fixed. This is important for properly rusting and discarding trains during phase changes triggered by train exports at the end of a stock round.
+A company's trains must be separated by commas. The following are recognized as valid train types for the games in which they are included: E, 7, 6, 5, 4, 3, 2, L, 2P, P2, 3/2, 3/2P, P3/2, LP, PL, P, P+, +, and G. If any other trains are listed in a company's train cell (or trains from this list that do not belong in a particular game), the script will not run until these train cells are fixed. This is important for properly rusting and discarding trains during phase changes triggered by train exports at the end of a stock round.
 
 ### I found a bug!
 Good job! This is my first project using JavaScript/Google Apps Script, so I suppose we could have seen this coming. Please open an issue for problems that you find. It would be very helpful if you can provide a link to an example sheet for which the round generator behaves incorrectly.
