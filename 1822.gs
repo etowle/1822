@@ -1028,7 +1028,7 @@ function createNewRound(formObject) {
         // Create weight on the interval (0,1) that favors minors higher in the draw pile
         let thisWeight = (game.numMinors - thisMatch - 1) / game.numMinors;
         
-        // Subtract 1 from the weight if this minors was just launched
+        // Subtract 1 from the weight if this minor was just launched
         // Only applies if current round is an SR
         if (results.currentType == "SR") {
           if (sold.indexOf(thisMinor) > -1 || sold.indexOf(thisMinor[0] + "0" + thisMinor.substr(1,2)) > -1) {
@@ -1039,6 +1039,13 @@ function createNewRound(formObject) {
         // Create weight on the interval 
         // Add to array of open minors
         openMinors.push({"name": thisMinor, "director": thisDirector, "sharePrice": results.data[marketRow][minorStartCol + i], "weight": thisWeight});
+        
+        // This minor should be visible in the next sheet
+        results.visibleMinorCols.push(minorCol[i+1] + 1);
+      }
+      else {
+        // This minor should be hidden in the next sheet
+        results.hiddenMinorCols.push(minorCol[i+1] + 1);
       }
     }
     // Sort open minors based on the share price and the weight from the draw pile order
@@ -1151,6 +1158,48 @@ function confirmNewRound() {
   newSheet.getRange(1, 1, queuedChanges.lastRow, queuedChanges.lastCol).setValues(data);
   SpreadsheetApp.flush();
   
+  // Hide/unhide minor columns
+  // Perform this in bulk with Sheet.hideColumns()/Sheet.showColumns for efficiency
+  
+  // Hide columns that are visible but should be hidden
+  let hideCols = queuedChanges.hiddenMinorCols;
+  for (var i=0; i<hideCols.length; i++) {
+    let coli = hideCols[i];
+    if (!newSheet.isColumnHiddenByUser(coli)) {
+      let consecutive = 1;
+      for (var j=i+1; j<hideCols.length; j++) {
+        if (hideCols[j] == coli + 1 && !newSheet.isColumnHiddenByUser(hideCols[j])) {
+          coli = hideCols[j]
+          consecutive++;
+        }
+        else {
+          break;
+        }
+      }
+      newSheet.hideColumns(hideCols[i], consecutive);
+      i += consecutive - 1;
+    }
+  }
+  // Reveal columns that are hidden but should be visible
+  let visCols = queuedChanges.visibleMinorCols;
+  for (var i=0; i<visCols.length; i++) {
+    let coli = visCols[i];
+    if (newSheet.isColumnHiddenByUser(coli)) {
+      let consecutive = 1;
+      for (var j=i+1; j<hideCols.length; j++) {
+        if (visCols[j] == coli + 1 && newSheet.isColumnHiddenByUser(visCols[j])) {
+          coli = visCols[j]
+          consecutive++;
+        }
+        else {
+          break;
+        }
+      }
+      newSheet.showColumns(visCols[i], consecutive);
+      i += consecutive - 1;
+    }
+  }
+    
   // If specified, copy protections from old sheet to new sheet
   // All protections in new sheet will be warning-only
   if (queuedChanges.protect) {

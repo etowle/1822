@@ -50,6 +50,8 @@ function Results() {
   this.errors = [];
   this.lastRow = 0;
   this.lastCol = 0;
+  this.visibleMinorCols = [];
+  this.hiddenMinorCols = [];
   
   this.log = function(val) { this.logged.push(val); }
   this.summarize = function(val) { this.summary.push(val); }
@@ -99,7 +101,7 @@ function Results() {
     else {
       // Save data as strings using user properties
       var userProperties = PropertiesService.getUserProperties();
-      var queuedChanges = {"gameName": this.gameName, "newName": this.newName, "newType": this.newType, "currentName": this.currentName, "currentType": this.currentType, "protect": this.protect, "log": this.logged, "changes": this.changes, "summary": this.summary, "outlines": this.outlines, "reminders": this.reminders, "lastRow": this.lastRow, "lastCol": this.lastCol};
+      var queuedChanges = {"gameName": this.gameName, "newName": this.newName, "newType": this.newType, "currentName": this.currentName, "currentType": this.currentType, "protect": this.protect, "log": this.logged, "changes": this.changes, "summary": this.summary, "outlines": this.outlines, "reminders": this.reminders, "lastRow": this.lastRow, "lastCol": this.lastCol, "visibleMinorCols": this.visibleMinorCols, "hiddenMinorCols": this.hiddenMinorCols};
       userProperties.setProperty("queuedChanges", JSON.stringify(queuedChanges));
       
       if (this.currentType == "SR") {
