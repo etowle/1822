@@ -1169,7 +1169,7 @@ function confirmNewRound() {
       let consecutive = 1;
       for (var j=i+1; j<hideCols.length; j++) {
         if (hideCols[j] == coli + 1 && !newSheet.isColumnHiddenByUser(hideCols[j])) {
-          coli = hideCols[j]
+          coli = hideCols[j];
           consecutive++;
         }
         else {
@@ -1188,7 +1188,7 @@ function confirmNewRound() {
       let consecutive = 1;
       for (var j=i+1; j<hideCols.length; j++) {
         if (visCols[j] == coli + 1 && newSheet.isColumnHiddenByUser(visCols[j])) {
-          coli = visCols[j]
+          coli = visCols[j];
           consecutive++;
         }
         else {
@@ -1199,7 +1199,7 @@ function confirmNewRound() {
       i += consecutive - 1;
     }
   }
-    
+  
   // If specified, copy protections from old sheet to new sheet
   // All protections in new sheet will be warning-only
   if (queuedChanges.protect) {
