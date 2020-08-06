@@ -1159,7 +1159,7 @@ function confirmNewRound() {
   SpreadsheetApp.flush();
   
   // Hide/unhide minor columns
-  // Perform this in bulk with Sheet.hideColumns()/Sheet.showColumns for efficiency
+  // Perform this in bulk with Sheet.hideColumns()/Sheet.showColumns() for efficiency
   
   // Hide columns that are visible but should be hidden
   let hideCols = queuedChanges.hiddenMinorCols;
