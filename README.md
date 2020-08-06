@@ -1,7 +1,7 @@
 
-# 1822 automatic round generator
+# 1822 automatic round generator for Google Sheets
 
-This is an automatic round generator for 1822-style games. The supported games and links to their corresponding Google Sheets documents are below.
+This is an automatic round generator for 1822-style games in Google Sheets. The supported games and links to their corresponding Google Sheets documents are below.
 
 * [1822CA (full map)](https://docs.google.com/spreadsheets/d/15jnmCJ9VuseIv2GcbuPA-qvkE2jV9F0pYEVA4xVc-6c/edit?usp=sharing) - based on template by Bob Lecuyer
 * [1822MX](https://docs.google.com/spreadsheets/d/1DuOTSOAqH1c4XfLEcM2RXNUfq-yXfz1IhUx4m5SqqnQ/edit?usp=sharing) - based on template by Scott Petersen
