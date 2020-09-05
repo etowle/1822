@@ -1043,8 +1043,12 @@ function createNewRound(formObject) {
         // This minor should be visible in the next sheet
         results.visibleMinorCols.push(minorCol[i+1] + 1);
       }
+      else if (results.data[mergerCommentsRow][minorStartCol + i].trim() !== "") {
+        // This minor should be visible in the next sheet if there are any merger comments
+        results.visibleMinorCols.push(minorCol[i+1] + 1);
+      }
       else {
-        // This minor should be hidden in the next sheet
+        // This minor should be hidden in the next sheet if it has no director and no merger comments
         results.hiddenMinorCols.push(minorCol[i+1] + 1);
       }
     }
