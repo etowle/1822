@@ -264,6 +264,11 @@ function createNewRound(formObject) {
   var operateRow = operateIndices[0];
   var miscRow = operateRow + 7;
   
+  // Get row for minors acquired directly from bid boxes
+  var bbAcquiredIndices = results.data.indexOf2D("Acquired from bid box in OR:");
+  if (results.checkIndex(bbAcquiredIndices[0], "bid box acquisition cells")) { return results.show(); }
+  var bbAcquiredRow = bbAcquiredIndices[0] + 1;
+  
   // 1822CA-specific
   if (game.name == "1822ca") {
     // Get column for P8/P9 (1822CA)
@@ -296,6 +301,7 @@ function createNewRound(formObject) {
     for (var i=0; i<MINORS_FOR_BIDDING; i++) {
       let minor = results.data[1][colMinorBids + i];
       let winner = results.data[winnerRow][colMinorBids + i];
+      let bbAcquiredOR = results.data[bbAcquiredRow][colMinorBids + i];
       
       // Is this minor blank?
       if (minor.toString().isBlank()) {
@@ -314,8 +320,14 @@ function createNewRound(formObject) {
       }
       lastMinor = minor;
       
+      // Acquired directly from bid box in OR?
+      if (bbAcquiredOR.toString().trim() !== "") {
+        newMinors.splice(newMinors.indexOf(minor), 1);
+        results.log(`${minor} was acquired by a major company during an OR (${bbAcquiredOR})`);
+        results.change(bbAcquiredRow, colMinorBids + i, "", true);
+      }
       // Were there no bidders?
-      if (winner == "-") {
+      else if (winner == "-") {
         let noBidders = `No bidders on minor ${minor}`;
         numExportedTrains++;
         if (i == 0) {
