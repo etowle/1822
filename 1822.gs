@@ -747,7 +747,7 @@ function createNewRound(formObject) {
         }
         
         // Is this item is the list of valid items?
-        if (!game.majors.map(m => m.toUpperCase()).includes(concession.toUpperCase())) {
+        if (!game.majorsUpper.includes(concession.toUpperCase())) {
           results.error(`Major concession "${concession}" in bid box ${i+1} not recognized`);
           return results.show();
         }
@@ -764,7 +764,7 @@ function createNewRound(formObject) {
           let winningBid = results.data[winningBidRow][colConcessionBids + i];
           
           // Add winner as owner for end of this round
-          let majorNum = game.majors.indexOf(concession) + 1;
+          let majorNum = game.majorsUpper.indexOf(concession.toUpperCase()) + 1;
           results.change(concessionOwnerRow + majorNum, concessionOwnerCol, winner);
           
           results.log(`${winner} won ${concession} concession for $${winningBid}`);

@@ -38,6 +38,7 @@ function getSetup(game) {
   else {
     return null;
   }
+  var majorsUpper = majors.map(m => m.toUpperCase());
   
-  return { "name": game, "minPlayers": minPlayers, "maxPlayers": maxPlayers, "majors": majors, "numMinors": numMinors, "numPrivates": numPrivates, "numMajors": numMajors, "stockPrices": stockPrices, "permanents": permanents, "incomeHeaders": incomeHeaders, "minorDirectorShares": minorDirectorShares, "minorHeaderText": minorHeaderText};
+  return {"name": game, "minPlayers": minPlayers, "maxPlayers": maxPlayers, "majors": majors, "majorsUpper": majorsUpper, "numMinors": numMinors, "numPrivates": numPrivates, "numMajors": numMajors, "stockPrices": stockPrices, "permanents": permanents, "incomeHeaders": incomeHeaders, "minorDirectorShares": minorDirectorShares, "minorHeaderText": minorHeaderText};
 }
